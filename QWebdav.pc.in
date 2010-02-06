@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDE_INSTALL_DIR@
+
+Name: QWebdav
+Description: QWebdav is a qt-based library to use webdav protocol
+Version: @QWEBDAV_LIB_MAJOR_VERSION@.@QWEBDAV_LIB_MINOR_VERSION@.@QWEBDAV_LIB_PATCH_VERSION@
+Requires: QtCore
+Libs: -L${libdir} -lqwebdav
+Cflags: -I${includedir}
