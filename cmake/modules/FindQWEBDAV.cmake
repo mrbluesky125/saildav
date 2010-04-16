@@ -17,7 +17,7 @@ else (QWEBDAV_INCLUDE_DIR AND QWEBDAV_LIBRARIES)
     # use pkg-config to get the values of QWEBDAV_INCLUDE_DIRS
     # and QWEBDAV_LIBRARY_DIRS to add as hints to the find commands.
     include (FindPkgConfig)
-    pkg_check_modules (QWEBDAV REQUIRED QWebdav >=0.5)
+    pkg_check_modules (QWEBDAV QWebdav >=0.5)
   endif (NOT WIN32)
 
   find_library (QWEBDAV_LIBRARIES
@@ -31,7 +31,7 @@ else (QWEBDAV_INCLUDE_DIR AND QWEBDAV_LIBRARIES)
 
   find_path (QWEBDAV_INCLUDE_DIR
     NAMES
-    parser.h
+    qwebdav.h
     PATH_SUFFIXES
     qwebdav
     PATHS
