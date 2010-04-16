@@ -69,12 +69,15 @@ QWebdavUrlInfo::codeFromResponse( const QString& response )
 QDateTime
 QWebdavUrlInfo::parseDateTime( const QString& input, const QString& type )
 {
-  if ( type == "dateTime.tz" )
-    return QDateTime::fromString( input, Qt::ISODate );
-  else if ( type == "dateTime.rfc1123" )
-    return QDateTime::fromString( input );
-
   QDateTime datetime;
+
+  if ( type == "dateTime.tz" )
+    datetime =  QDateTime::fromString( input, Qt::ISODate );
+  else if ( type == "dateTime.rfc1123" )
+    datetime = QDateTime::fromString( input );
+
+  if (!datetime.isNull())
+    return datetime;
 
   datetime = QDateTime::fromString(input.left(19), "yyyy-MM-dd'T'hh:mm:ss");
   if (!datetime.isNull())
