@@ -114,6 +114,9 @@ QWebdavUrlInfo::davParsePropstats( const QString & path,
 
     int code = codeFromResponse( status.text() );
 
+    if (code == 404)
+      continue ;
+
     QDomElement prop = propstat.namedItem( "prop" ).toElement();
 
     if ( prop.isNull() ) {
