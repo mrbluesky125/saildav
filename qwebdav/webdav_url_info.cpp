@@ -23,7 +23,7 @@
 
 #include "webdav_url_info.h"
 
-QWebdavUrlInfo::QWebdavUrlInfo()
+QWebdavUrlInfo::QWebdavUrlInfo(QObject* parent) : QObject(parent)
 {
 }
 
@@ -31,253 +31,252 @@ QWebdavUrlInfo::~QWebdavUrlInfo()
 {
 }
 
-QWebdavUrlInfo::QWebdavUrlInfo(const QDomElement & dom)
+QWebdavUrlInfo::QWebdavUrlInfo(const QDomElement& dom, QObject* parent) : QObject(parent)
 {
-  QDomElement href = dom.namedItem( "href" ).toElement();
+    QDomElement href = dom.namedItem( "href" ).toElement();
 
-  node_ = dom.cloneNode();
+    node_ = dom.cloneNode();
 
-  if ( !href.isNull() )
+    if ( !href.isNull() )
     {
-      QString urlStr = QUrl::fromPercentEncoding(href.text().toUtf8());
-      QDomNodeList propstats = dom.elementsByTagName( "propstat" );
-      davParsePropstats( urlStr, propstats );
+        QString urlStr = QUrl::fromPercentEncoding(href.text().toUtf8());
+        QDomNodeList propstats = dom.elementsByTagName( "propstat" );
+        davParsePropstats( urlStr, propstats );
     }
 }
 
-QWebdavUrlInfo::QWebdavUrlInfo (const QWebdavUrlInfo & wui)
-  : QUrlInfo(wui),
-    properties_(wui.properties_),
-    createdAt_(wui.createdAt_),
-    displayName_(wui.displayName_),
-    source_(wui.source_),
-    contentLanguage_(wui.contentLanguage_),
-    entityTag_(wui.entityTag_),
-    mimeType_(wui.mimeType_)
+QWebdavUrlInfo::QWebdavUrlInfo (const QWebdavUrlInfo& wui, QObject* parent) : QObject(parent), QUrlInfo(wui)
+      ,properties_(wui.properties_)
+      ,createdAt_(wui.createdAt_)
+      ,displayName_(wui.displayName_)
+      ,source_(wui.source_)
+      ,contentLanguage_(wui.contentLanguage_)
+      ,entityTag_(wui.entityTag_)
+      ,mimeType_(wui.mimeType_)
 {
-  node_ = wui.node_.cloneNode();
+    node_ = wui.node_.cloneNode();
 }
 
-int
-QWebdavUrlInfo::codeFromResponse( const QString& response )
+int QWebdavUrlInfo::codeFromResponse( const QString& response )
 {
-  int firstSpace = response.indexOf( ' ' );
-  int secondSpace = response.indexOf( ' ', firstSpace + 1 );
-  return response.mid( firstSpace + 1, secondSpace - firstSpace - 1 ).toInt();
+    int firstSpace = response.indexOf( ' ' );
+    int secondSpace = response.indexOf( ' ', firstSpace + 1 );
+    return response.mid( firstSpace + 1, secondSpace - firstSpace - 1 ).toInt();
 }
 
-QDateTime
-QWebdavUrlInfo::parseDateTime( const QString& input, const QString& type )
+QDateTime QWebdavUrlInfo::parseDateTime( const QString& input, const QString& type )
 {
-  QDateTime datetime;
+    QDateTime datetime;
 
-  if ( type == "dateTime.tz" )
-    datetime =  QDateTime::fromString( input, Qt::ISODate );
-  else if ( type == "dateTime.rfc1123" )
-    datetime = QDateTime::fromString( input );
+    if ( type == "dateTime.tz" )
+        datetime =  QDateTime::fromString( input, Qt::ISODate );
+    else if ( type == "dateTime.rfc1123" )
+        datetime = QDateTime::fromString( input );
 
-  if (!datetime.isNull())
-    return datetime;
+    if (!datetime.isNull())
+        return datetime;
 
-  datetime = QDateTime::fromString(input.left(19), "yyyy-MM-dd'T'hh:mm:ss");
-  if (!datetime.isNull())
-    return datetime;
-  datetime = QDateTime::fromString(input.mid(5, 20) , "d MMM yyyy hh:mm:ss");
-  if (!datetime.isNull())
-    return datetime;
-  QDate date;
-  QTime time;
+    datetime = QDateTime::fromString(input.left(19), "yyyy-MM-dd'T'hh:mm:ss");
+    if (!datetime.isNull())
+        return datetime;
+    datetime = QDateTime::fromString(input.mid(5, 20) , "d MMM yyyy hh:mm:ss");
+    if (!datetime.isNull())
+        return datetime;
+    QDate date;
+    QTime time;
 
-  date = QDate::fromString(input.mid(5, 11) , "d MMM yyyy");
-  time = QTime::fromString(input.mid(17, 8) , "hh:mm:ss");
-  return QDateTime(date, time);
+    date = QDate::fromString(input.mid(5, 11) , "d MMM yyyy");
+    time = QTime::fromString(input.mid(17, 8) , "hh:mm:ss");
+    return QDateTime(date, time);
 }
 
-void
-QWebdavUrlInfo::davParsePropstats( const QString & path,
-				   const QDomNodeList & propstats )
+void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList & propstats )
 {
-  QString mimeType;
-  bool foundExecutable = false;
-  bool isDirectory = false;
+    QString mimeType;
+    bool foundExecutable = false;
+    bool isDirectory = false;
 
-  setName(path);
+    setName(path);
 
-  for ( int i = 0; i < propstats.count(); i++) {
-    QDomElement propstat = propstats.item(i).toElement();
-    QDomElement status = propstat.namedItem( "status" ).toElement();
+    for ( int i = 0; i < propstats.count(); i++) {
+        QDomElement propstat = propstats.item(i).toElement();
+        QDomElement status = propstat.namedItem( "status" ).toElement();
 
-    if ( status.isNull() ) {
-      qDebug() << "Error, no status code in this propstat";
-      return;
+        if ( status.isNull() ) {
+            qDebug() << "Error, no status code in this propstat";
+            return;
+        }
+
+        int code = codeFromResponse( status.text() );
+
+        if (code == 404)
+            continue ;
+
+        QDomElement prop = propstat.namedItem( "prop" ).toElement();
+
+        if ( prop.isNull() ) {
+            qDebug() << "Error: no prop segment in this propstat.";
+            return;
+        }
+
+        for ( QDomNode n = prop.firstChild(); !n.isNull(); n = n.nextSibling() ) {
+            QDomElement property = n.toElement();
+
+            if (property.isNull())
+                continue;
+
+            properties_[property.namespaceURI()][property.tagName()] = property.text();
+
+            if ( property.namespaceURI() != "DAV:" ) {
+                // break out - we're only interested in properties from the DAV namespace
+                continue;
+            }
+
+            if ( property.tagName() == "creationdate" )
+                setCreatedAt(parseDateTime( property.text(), property.attribute("dt") ));
+            else if ( property.tagName() == "getcontentlength" )
+                setSize(property.text().toULong());
+            else if ( property.tagName() == "displayname" )
+                setDisplayName(property.text());
+            else if ( property.tagName() == "source" )
+            {
+                QDomElement source;
+
+                source = property.namedItem( "link" ).toElement()
+                         .namedItem( "dst" ).toElement();
+
+                if ( !source.isNull() )
+                    setSource(source.text());
+            }
+            else if ( property.tagName() == "getcontentlanguage" )
+                setContentLanguage(property.text());
+            else if ( property.tagName() == "getcontenttype" )
+            {
+                if ( property.text() == "httpd/unix-directory" )
+                    isDirectory = true;
+                else
+                    mimeType = property.text();
+            }
+            else if ( property.tagName() == "executable" )
+            {
+                if ( property.text() == "T" )
+                    foundExecutable = true;
+            }
+            else if ( property.tagName() == "getlastmodified" )
+                setLastModified(parseDateTime( property.text(), property.attribute("dt") ));
+            else if ( property.tagName() == "getetag" )
+                setEntitytag(property.text());
+            else if ( property.tagName() == "resourcetype" )
+            {
+                if ( !property.namedItem( "collection" ).toElement().isNull() )
+                    isDirectory = true;
+            }
+            else
+                qDebug() << "Found unknown webdav property: "
+                         << property.tagName() << property.text();
+        }
     }
+    setDir(isDirectory);
+    setFile(!isDirectory);
 
-    int code = codeFromResponse( status.text() );
+    if (isDirectory && !name().endsWith("/"))
+        setName(name() + "/");
 
-    if (code == 404)
-      continue ;
+    if ( foundExecutable || isDirectory )
+        setPermissions(0700);
+    else
+        setPermissions(0600);
 
-    QDomElement prop = propstat.namedItem( "prop" ).toElement();
-
-    if ( prop.isNull() ) {
-      qDebug() << "Error: no prop segment in this propstat.";
-      return;
-    }
-
-    for ( QDomNode n = prop.firstChild(); !n.isNull(); n = n.nextSibling() ) {
-      QDomElement property = n.toElement();
-
-      if (property.isNull())
-        continue;
-
-      properties_[property.namespaceURI()][property.tagName()] = property.text();
-
-      if ( property.namespaceURI() != "DAV:" ) {
-	// break out - we're only interested in properties from the DAV namespace
-	continue;
-      }
-
-      if ( property.tagName() == "creationdate" )
-	setCreatedAt(parseDateTime( property.text(), property.attribute("dt") ));
-      else if ( property.tagName() == "getcontentlength" )
-        setSize(property.text().toULong());
-      else if ( property.tagName() == "displayname" )
-	setDisplayName(property.text());
-      else if ( property.tagName() == "source" )
-      {
-        QDomElement source;
-
-	source = property.namedItem( "link" ).toElement()
-	  .namedItem( "dst" ).toElement();
-
-        if ( !source.isNull() )
-          setSource(source.text());
-      }
-      else if ( property.tagName() == "getcontentlanguage" )
-	setContentLanguage(property.text());
-      else if ( property.tagName() == "getcontenttype" )
-	{
-	  if ( property.text() == "httpd/unix-directory" )
-	    isDirectory = true;
-	  else
-	    mimeType = property.text();
-	}
-      else if ( property.tagName() == "executable" )
-	{
-	  if ( property.text() == "T" )
-	    foundExecutable = true;
-	}
-      else if ( property.tagName() == "getlastmodified" )
-	setLastModified(parseDateTime( property.text(), property.attribute("dt") ));
-      else if ( property.tagName() == "getetag" )
-	setEntitytag(property.text());
-      else if ( property.tagName() == "resourcetype" )
-        {
-	  if ( !property.namedItem( "collection" ).toElement().isNull() )
-	    isDirectory = true;
-	}
-      else
-        qDebug() << "Found unknown webdav property: "
-		 << property.tagName() << property.text();
-    }
-  }
-  setDir(isDirectory);
-  setFile(!isDirectory);
-
-  if (isDirectory && !name().endsWith("/"))
-    setName(name() + "/");
-
-  if ( foundExecutable || isDirectory )
-    setPermissions(0700);
-  else
-    setPermissions(0600);
-
-  if ( !isDirectory && !mimeType.isEmpty() )
-    setMimeType(mimeType);
+    if ( !isDirectory && !mimeType.isEmpty() )
+        setMimeType(mimeType);
 }
 
 
-void
-QWebdavUrlInfo::setCreatedAt(const QDateTime & date)
+void QWebdavUrlInfo::setCreatedAt(const QDateTime & date)
 {
-  createdAt_ = date;
+    if(createdAt_ == date) return;
+
+    createdAt_ = date;
+    emit createdAtChanged(createdAt_);
 }
 
-void
-QWebdavUrlInfo::setDisplayName(const QString & name)
+void QWebdavUrlInfo::setDisplayName(const QString & name)
 {
-  displayName_ = name;
+    if(displayName_ == name) return;
+
+    displayName_ = name;
+    emit displayNameChanged(displayName_);
 }
 
-void
-QWebdavUrlInfo::setSource(const QString & source)
+void QWebdavUrlInfo::setSource(const QString & source)
 {
-  source_ = source;
+    if(source_ == source) return;
+
+    source_ = source;
+    emit sourceChanged(source_);
 }
 
-void
-QWebdavUrlInfo::setContentLanguage(const QString & lang)
+void QWebdavUrlInfo::setContentLanguage(const QString & lang)
 {
-  contentLanguage_ = lang;
+    if( contentLanguage_ == lang) return;
+
+    contentLanguage_ = lang;
+    emit contentLanguageChanged(contentLanguage_);
 }
 
-void
-QWebdavUrlInfo::setEntitytag(const QString & etag)
+void QWebdavUrlInfo::setEntitytag(const QString & etag)
 {
-  entityTag_ = etag;
+    if(entityTag_ == etag) return;
+
+    entityTag_ = etag;
+    emit entityTagChanged(entityTag_);
 }
 
-void
-QWebdavUrlInfo::setMimeType(const QString & mime)
+void QWebdavUrlInfo::setMimeType(const QString & mime)
 {
-  mimeType_ = mime;
+    if(mimeType_ == mime) return;
+
+    mimeType_ = mime;
+    emit mimeTypeChanged(mimeType_);
 }
 
 
-QDateTime
-QWebdavUrlInfo::createdAt() const
+QDateTime QWebdavUrlInfo::createdAt() const
 {
-  return createdAt_;
+    return createdAt_;
 }
 
-QString
-QWebdavUrlInfo::displayName() const
+QString QWebdavUrlInfo::displayName() const
 {
-  return displayName_;
+    return displayName_;
 }
 
-QString
-QWebdavUrlInfo::source() const
+QString QWebdavUrlInfo::source() const
 {
-  return source_;
+    return source_;
 }
 
-QString
-QWebdavUrlInfo::contentLanguage() const
+QString QWebdavUrlInfo::contentLanguage() const
 {
-  return contentLanguage_;
+    return contentLanguage_;
 }
 
-QString
-QWebdavUrlInfo::entityTag() const
+QString QWebdavUrlInfo::entityTag() const
 {
-  return entityTag_;
+    return entityTag_;
 }
 
-QString
-QWebdavUrlInfo::mimeType() const
+QString QWebdavUrlInfo::mimeType() const
 {
-  return mimeType_;
+    return mimeType_;
 }
 
-QDomElement
-QWebdavUrlInfo::propElement() const
+QDomElement QWebdavUrlInfo::propElement() const
 {
-  return node_.toElement();
+    return node_.toElement();
 }
 
-const QWebdav::PropValues &
-QWebdavUrlInfo::properties() const
+const QWebdav::PropValues& QWebdavUrlInfo::properties() const
 {
-  return properties_;
+    return properties_;
 }

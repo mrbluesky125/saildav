@@ -28,49 +28,61 @@
 #include <QUrlInfo>
 #include <QVariant>
 
-#include "webdav_export.h"
 #include "webdav.h"
 
-class QWEBDAV_EXPORT QWebdavUrlInfo : virtual public QUrlInfo
+class QWebdavUrlInfo : public QObject, virtual public QUrlInfo
 {
- public:
-  QWebdavUrlInfo ();
-  QWebdavUrlInfo ( const QDomElement & dom );
-  QWebdavUrlInfo ( const QWebdavUrlInfo & wui );
+    Q_OBJECT
 
-  virtual ~QWebdavUrlInfo ();
- private:
-  int codeFromResponse( const QString & response );
-  QDateTime parseDateTime( const QString& input, const QString& type );
-  void davParsePropstats(const QString & path, const QDomNodeList & propstat);
+private:
+    QDomNode node_;
+    QWebdav::PropValues properties_;
 
- public:
-  void setCreatedAt(const QDateTime & date);
-  void setDisplayName(const QString & name);
-  void setSource(const QString & source);
-  void setContentLanguage(const QString & lang);
-  void setEntitytag(const QString & etag);
-  void setMimeType(const QString & mime);
+    QDateTime createdAt_;
+    QString displayName_;
+    QString source_;
+    QString contentLanguage_;
+    QString entityTag_;
+    QString mimeType_;
 
-  QDateTime createdAt() const;
-  QString displayName() const;
-  QString source() const;
-  QString contentLanguage() const;
-  QString entityTag() const;
-  QString mimeType() const;
+public:
+    QWebdavUrlInfo(QObject* parent = NULL);
+    QWebdavUrlInfo(const QDomElement& dom, QObject* parent = NULL);
+    QWebdavUrlInfo(const QWebdavUrlInfo& wui, QObject* parent = NULL);
 
-  QDomElement propElement() const;
-  const QWebdav::PropValues & properties() const;
- private:
+    virtual ~QWebdavUrlInfo ();
 
-  QDomNode node_;
-  QWebdav::PropValues properties_;
-  QDateTime createdAt_;
-  QString displayName_;
-  QString source_;
-  QString contentLanguage_;
-  QString entityTag_;
-  QString mimeType_;
+public:
+    void setCreatedAt(const QDateTime& date);
+    void setDisplayName(const QString& name);
+    void setSource(const QString& source);
+    void setContentLanguage(const QString& lang);
+    void setEntitytag(const QString& etag);
+    void setMimeType(const QString& mime);
+
+    QDateTime createdAt() const;
+    QString displayName() const;
+    QString source() const;
+    QString contentLanguage() const;
+    QString entityTag() const;
+    QString mimeType() const;
+
+    QDomElement propElement() const;
+    const QWebdav::PropValues & properties() const;
+
+protected:
+    int codeFromResponse(const QString& response);
+    QDateTime parseDateTime(const QString& input, const QString& type);
+    void davParsePropstats(const QString& path, const QDomNodeList& propstat);
+
+signals:
+    void createdAtChanged(QDateTime);
+    void displayNameChanged(QString);
+    void sourceChanged(QString);
+    void contentLanguageChanged(QString);
+    void entityTagChanged(QString);
+    void mimeTypeChanged(QString);
+
 };
 
 #endif /* QWEBDAV_URL_INFO_H */
