@@ -21,10 +21,8 @@
 #ifndef QWEBDAV_H
 #define QWEBDAV_H
 
-#include "webdav_export.h"
-
-#include <QHttp>
-#include <QHttpRequestHeader>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
 #include <QUrlInfo>
 #include <QDateTime>
 #include <QDomNodeList>
@@ -34,72 +32,66 @@ class QWebdavUrlInfo;
 /**
  * @brief Main class used to handle the webdav protocol
  */
-class QWEBDAV_EXPORT QWebdav : virtual public QHttp
+class QWebdav : public QNetworkAccessManager
 {
-  Q_OBJECT
- public:
-  QWebdav ( QObject * parent = 0 );
-  QWebdav ( const QString & hostName, quint16 port = 80, QObject * parent = 0 );
-  QWebdav ( const QString & hostName, ConnectionMode mode, quint16 port = 0,
-	    QObject * parent = 0 );
-  ~QWebdav ();
+    Q_OBJECT
 
-  typedef QMap < QString, QMap < QString, QVariant > > PropValues;
-  typedef QMap < QString , QStringList > PropNames;
+private:
+    Q_DISABLE_COPY(QWebdav)
+    bool emitListInfo;
+    QByteArray buffer;
+    QString host;
 
-  int list ( const QString & dir = QString() );
-  int search ( const QString & path, const QString & query );
-  int put ( const QString & path, QIODevice *data );
-  int put ( const QString & path, const QByteArray & data );
+public:
+    QWebdav(QObject* parent = 0 );
+    QWebdav(const QString& hostName, quint16 port = 80, QObject* parent = 0 );
+    QWebdav(const QString& hostName, ConnectionMode mode, quint16 port = 0, QObject* parent = 0 );
+    ~QWebdav();
 
-  int mkcol ( const QString & dir );
+    typedef QMap< QString, QMap < QString, QVariant > > PropValues;
+    typedef QMap< QString, QStringList > PropNames;
 
-  int mkdir ( const QString & dir );
-  int copy ( const QString & oldname, const QString & newname,
-	     bool overwrite = false );
-  int rename ( const QString & oldname, const QString & newname,
-	       bool overwrite = false );
-  int move ( const QString & oldname, const QString & newname,
-	     bool overwrite = false );
-  int rmdir ( const QString & dir );
-  int remove ( const QString & path );
+    int list(const QString& dir = QString() );
+    int search(const QString& path, const QString& query );
+    int put(const QString& path, QIODevice* data );
+    int put(const QString& path, const QByteArray& data );
 
-  int propfind ( const QString & path, const QByteArray & query, int depth = 0 );
-  int propfind ( const QString & path, const QWebdav::PropNames & props,
-		 int depth = 0 );
+    int mkcol( const QString& dir );
 
-  int proppatch ( const QString & path, const QWebdav::PropValues & props);
-  int proppatch ( const QString & path, const QByteArray & query );
+    int mkdir( const QString& dir );
+    int copy( const QString& oldname, const QString& newname, bool overwrite = false );
+    int rename( const QString& oldname, const QString& newname, bool overwrite = false );
+    int move( const QString& oldname, const QString& newname, bool overwrite = false );
+    int rmdir( const QString& dir );
+    int remove( const QString& path );
 
-  int setHost ( const QString &, quint16 );
-  int setHost ( const QString &, ConnectionMode, quint16 );
+    int propfind( const QString& path, const QByteArray& query, int depth = 0 );
+    int propfind( const QString& path, const QWebdav::PropNames& props, int depth = 0 );
 
-  /* TODO lock, unlock */
- signals:
-  void listInfo ( const QWebdavUrlInfo & i );
+    int proppatch( const QString& path, const QWebdav::PropValues& props);
+    int proppatch( const QString& path, const QByteArray& query );
 
- private slots:
-  void readyRead ( const QHttpResponseHeader & resp );
-  void requestFinished ( int id, bool error );
-  void responseHeaderReceived( const QHttpResponseHeader & resp );
+    int setHost( const QString&, quint16 );
+    int setHost( const QString&, ConnectionMode, quint16 );
 
- private:
-  void init(const QString & hostName);
-  void emitListInfos();
-  void davParsePropstats( const QDomNodeList & propstat );
-  int codeFromResponse( const QString& response );
-  QDateTime parseDateTime( const QString& input, const QString& type );
-  int davRequest(QHttpRequestHeader & req,
-		 const QByteArray & data = QByteArray());
-  int davRequest(QHttpRequestHeader & req,
-		 QIODevice * data);
-  void setupHeaders(QHttpRequestHeader & req, quint64 size);
+    /* TODO lock, unlock */
+signals:
+    void listInfo( const QWebdavUrlInfo& i );
 
- private:
-  Q_DISABLE_COPY(QWebdav);
-  bool emitListInfo;
-  QByteArray buffer;
-  QString host;
+private slots:
+    void readyRead( const QHttpResponseHeader& resp );
+    void requestFinished( int id, bool error );
+    void responseHeaderReceived( const QHttpResponseHeader& resp );
+
+private:
+    void init(const QString& hostName);
+    void emitListInfos();
+    void davParsePropstats( const QDomNodeList& propstat );
+    int codeFromResponse( const QString& response );
+    QDateTime parseDateTime( const QString& input, const QString& type );
+    int davRequest(QHttpRequestHeader& req, const QByteArray& data = QByteArray());
+    int davRequest(QHttpRequestHeader& req, QIODevice* data);
+    void setupHeaders(QHttpRequestHeader& req, quint64 size);
 };
 
 #endif // QWEBDAV_H
