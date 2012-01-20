@@ -34,6 +34,13 @@ class QWebdavUrlInfo : public QObject, virtual public QUrlInfo
 {
     Q_OBJECT
 
+    Q_PROPERTY(QDateTime createdAt READ createdAt WRITE setCreatedAt NOTIFY createdAtChanged)
+    Q_PROPERTY(QString displayName READ displayName WRITE setDisplayName NOTIFY displayNameChanged)
+    Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QString contentLanguage READ contentLanguage WRITE setContentLanguage NOTIFY contentLanguageChanged)
+    Q_PROPERTY(QString entitytag READ entitytag WRITE setEntitytag NOTIFY entitytagChanged)
+    Q_PROPERTY(QString mimeType READ mimeType WRITE setMimeType NOTIFY mimeTypeChanged)
+
 private:
     QDomNode node_;
     QWebdav::PropValues properties_;
@@ -52,6 +59,8 @@ public:
 
     virtual ~QWebdavUrlInfo ();
 
+    static QList<QWebdavUrlInfo*> parseListReply(const QByteArray& data);
+
 public:
     void setCreatedAt(const QDateTime& date);
     void setDisplayName(const QString& name);
@@ -64,7 +73,7 @@ public:
     QString displayName() const;
     QString source() const;
     QString contentLanguage() const;
-    QString entityTag() const;
+    QString entitytag() const;
     QString mimeType() const;
 
     QDomElement propElement() const;
@@ -80,7 +89,7 @@ signals:
     void displayNameChanged(QString);
     void sourceChanged(QString);
     void contentLanguageChanged(QString);
-    void entityTagChanged(QString);
+    void entitytagChanged(QString);
     void mimeTypeChanged(QString);
 
 };
