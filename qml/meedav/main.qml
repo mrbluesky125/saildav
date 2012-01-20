@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "js/core.js" as Core
 
 PageStackWindow {
     id: appWindow
@@ -26,5 +27,10 @@ PageStackWindow {
         MenuLayout {
             MenuItem { text: qsTr("Sample menu item") }
         }
+    }
+
+    Component.onCompleted:
+    {
+        Core.openDB();
     }
 }

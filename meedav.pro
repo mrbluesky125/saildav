@@ -32,7 +32,8 @@ CONFIG += qdeclarative-boostable
 # CONFIG += qt-components
 
 # The .cpp file which was generated for your project. Feel free to hack it.
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    webdavclient.cpp
 
 include(qwebdav/qwebdav.pri)
 
@@ -48,4 +49,10 @@ OTHER_FILES += \
     qtc_packaging/debian_harmattan/control \
     qtc_packaging/debian_harmattan/compat \
     qtc_packaging/debian_harmattan/changelog
+
+HEADERS += \
+    webdavclient.h
+
+
+
 

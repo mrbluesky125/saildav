@@ -18,56 +18,52 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <QDomDocument>
-#include <QDomNode>
-#include <QUrl>
-#include <QDebug>
+#include <QtNetwork>
+#include <QtDebug>
 
 #include "webdav.h"
 #include "webdav_url_info.h"
 
 QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
 {
-    init("");
+    connect(this, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 }
 
-QWebdav::QWebdav (const QString& hostName, quint16 port, QObject* parent) : QNetworkAccessManager(parent)
-{
-    init(hostName);
-}
-
-QWebdav::QWebdav ( const QString& hostName, ConnectionMode mode, quint16 port, QObject* parent)
-    : QNetworkAccessManager(parent)
-{
-    init(hostName);
-}
-
-QWebdav::~QWebdav ()
+QWebdav::~QWebdav()
 {
 }
 
-int QWebdav::setHost (const QString& hostName, quint16 port )
+void QWebdav::replyFinished(QNetworkReply* reply)
 {
-    host = hostName;
-    return QHttp::setHost(hostName, port);
+    qDebug() << "QWebdav | " << reply->header(QNetworkRequest::ContentTypeHeader);
+
+    delete m_outDataDevices.value(reply);
+    m_outDataDevices.remove(reply);
+    reply->deleteLater();
 }
 
-int QWebdav::setHost (const QString& hostName, ConnectionMode mode, quint16 port)
+QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
 {
-    host = hostName;
-    return QHttp::setHost(hostName, mode, port);
+     if(outgoingData != 0 && outgoingData->size() !=0) {
+        req.setHeader(QNetworkRequest::ContentLengthHeader, outgoingData->size());
+        req.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml; charset=utf-8");
+    }
+
+    return sendCustomRequest(req, method.toAscii(), outgoingData);
 }
 
-void QWebdav::init(const QString & hostName)
+QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, const QByteArray& outgoingData )
 {
-    host = hostName;
-    emitListInfo = false;
-    connect(this, SIGNAL(readyRead ( const QHttpResponseHeader & )), this, SLOT(readyRead ( const QHttpResponseHeader & )));
-    connect(this, SIGNAL(requestFinished ( int, bool )), this, SLOT(requestFinished ( int, bool )));
-    connect(this, SIGNAL(responseHeaderReceived( const QHttpResponseHeader & )), this, SLOT(responseHeaderReceived( const QHttpResponseHeader & )));
+    QBuffer* dataIO = new QBuffer;
+    dataIO->setData(outgoingData);
+    dataIO->open(QIODevice::ReadOnly);
+
+    QNetworkReply* reply = createRequest(method, req, dataIO);
+    m_outDataDevices.insert(reply, dataIO);
+    return reply;
 }
 
-int QWebdav::list(const QString& dir)
+QNetworkReply* QWebdav::list(const QString& path)
 {
     QWebdav::PropNames query;
     QStringList props;
@@ -85,35 +81,39 @@ int QWebdav::list(const QString& dir)
 
     query["DAV:"] = props;
 
-    return propfind(dir, query, 1);
+    return propfind(path, query, 1);
 }
 
-int QWebdav::search(const QString& path, const QString& q )
+QNetworkReply* QWebdav::search(const QString& path, const QString& q )
 {
     QByteArray query = "<?xml version=\"1.0\"?>\r\n";
     query.append( "<D:searchrequest xmlns:D=\"DAV:\">\r\n" );
     query.append( q.toUtf8() );
     query.append( "</D:searchrequest>\r\n" );
 
-    QHttpRequestHeader req("SEARCH", path);
-    return davRequest(req);
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
+
+    return this->createRequest("SEARCH", req, query);
 }
 
-int QWebdav::put(const QString& path, QIODevice* data )
+QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
 {
-    QHttpRequestHeader req("PUT", path);
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
 
-    return davRequest(req, data);
+    return QNetworkAccessManager::put(req, data);
 }
 
-int QWebdav::put(const QString& path, const QByteArray& data )
-{
-    QHttpRequestHeader req("PUT", path);
+QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
+{  
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
 
-    return davRequest(req, data);
+    return QNetworkAccessManager::put(req, data);
 }
 
-int QWebdav::propfind(const QString& path, const QWebdav::PropNames& props, int depth)
+QNetworkReply* QWebdav::propfind(const QString& path, const QWebdav::PropNames& props, int depth)
 {
     QByteArray query;
 
@@ -134,20 +134,16 @@ int QWebdav::propfind(const QString& path, const QWebdav::PropNames& props, int 
 }
 
 
-int QWebdav::propfind( const QString & path, const QByteArray & query, int depth )
+QNetworkReply* QWebdav::propfind(const QString& path, const QByteArray& query, int depth)
 {
-    QHttpRequestHeader req("PROPFIND", path);
-    QString value;
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
+    req.setRawHeader("Depth", depth == 2 ? QString("infinity").toUtf8() : QString::number(depth).toUtf8());
 
-    if (depth == 2)
-        value = "infinity";
-    else
-        value = QString("%1").arg(depth);
-    req.setValue("Depth", value);
-    return davRequest(req, query);
+    return createRequest("PROPFIND", req, query);
 }
 
-int QWebdav::proppatch ( const QString & path, const QWebdav::PropValues & props)
+QNetworkReply* QWebdav::proppatch(const QString& path, const QWebdav::PropValues& props)
 {
     QByteArray query;
 
@@ -176,124 +172,48 @@ int QWebdav::proppatch ( const QString & path, const QWebdav::PropValues & props
     return proppatch(path, query);
 }
 
-int QWebdav::proppatch( const QString & path, const QByteArray & query)
+QNetworkReply* QWebdav::proppatch(const QString& path, const QByteArray& query)
 {
-    QHttpRequestHeader req("PROPPATCH", path);
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
 
-    return davRequest(req, query);
+    return createRequest("PROPPATCH", req, query);
 }
 
-void QWebdav::readyRead ( const QHttpResponseHeader & rep )
+QNetworkReply* QWebdav::mkdir (const QString& path)
 {
-    if (emitListInfo)
-        buffer += readAll();
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
+
+    return createRequest("MKCOL", req);
 }
 
-void QWebdav::emitListInfos()
+QNetworkReply* QWebdav::copy(const QString& pathFrom, const QString& pathTo, bool overwrite)
 {
-    QDomDocument multiResponse;
-    bool hasResponse = false;
+    QNetworkRequest req;
+    req.setUrl(QUrl(pathFrom));
+    req.setRawHeader("Destination", pathTo.toUtf8());
+    req.setRawHeader("Depth", "infinity");
+    req.setRawHeader("Overwrite", overwrite ? "T" : "F");
 
-    multiResponse.setContent(buffer, true);
-
-    for ( QDomNode n = multiResponse.documentElement().firstChild();
-          !n.isNull(); n = n.nextSibling())
-    {
-        QDomElement thisResponse = n.toElement();
-
-        if (thisResponse.isNull())
-            continue;
-
-        QWebdavUrlInfo info(thisResponse);
-
-        if (!info.isValid())
-            continue;
-
-        hasResponse = true;
-        emit listInfo(info);
-    }
+    return createRequest("COPY", req);
 }
 
-void QWebdav::responseHeaderReceived( const QHttpResponseHeader& resp )
+QNetworkReply* QWebdav::move(const QString& pathFrom, const QString& pathTo, bool overwrite)
 {
-    QHttpRequestHeader req = currentRequest();
-    QString method = req.method().toUpper();
+    QNetworkRequest req;
+    req.setUrl(QUrl(pathFrom));
+    req.setRawHeader("Destination", pathTo.toUtf8());
+    req.setRawHeader("Depth", "infinity");
+    req.setRawHeader("Overwrite", overwrite ? "T" : "F");
 
-    if (method == "PROPFIND" || method == "SEARCH")
-        emitListInfo = true;
+    return createRequest("MOVE", req);
 }
 
-void QWebdav::requestFinished ( int id, bool error )
+QNetworkReply* QWebdav::remove(const QString& path)
 {
-    if (emitListInfo && !error)
-        emitListInfos();
-    buffer.clear();
-    emitListInfo = false;
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
+
+    return createRequest("DELETE", req);
 }
-
-void QWebdav::setupHeaders(QHttpRequestHeader& req, quint64 size)
-{
-    req.setValue("Host", host);
-    req.setValue("Connection", "Keep-Alive");
-    if (size) {
-        req.setContentLength(size);
-        req.setContentType("text/xml; charset=utf-8");
-    }
-}
-
-int QWebdav::davRequest(QHttpRequestHeader& req, const QByteArray & data)
-{
-    setupHeaders(req, data.size());
-    return request(req, data);
-}
-
-int QWebdav::davRequest(QHttpRequestHeader& req, QIODevice * data)
-{
-    setupHeaders(req, data->size());
-    return request(req, data);
-}
-
-int QWebdav::mkdir ( const QString & dir )
-{
-    QHttpRequestHeader req("MKCOL", dir);
-
-    return davRequest(req);
-}
-
-int QWebdav::copy ( const QString & oldname, const QString & newname, bool overwrite)
-{
-    QHttpRequestHeader req("COPY", oldname);
-
-    req.setValue("Destination", newname);
-    req.setValue("Depth", "infinity");
-    req.setValue("Overwrite", overwrite ? "T" : "F");
-    return davRequest(req);
-}
-
-int QWebdav::rename ( const QString & oldname, const QString & newname, bool overwrite)
-{
-    return move(oldname, newname);
-}
-
-int QWebdav::move ( const QString & oldname, const QString & newname, bool overwrite)
-{
-    QHttpRequestHeader req("MOVE", oldname);
-
-    req.setValue("Destination", newname);
-    req.setValue("Depth", "infinity");
-    req.setValue("Overwrite", overwrite ? "T" : "F");
-    return davRequest(req);
-}
-
-int QWebdav::rmdir ( const QString & dir )
-{
-    return remove(dir);
-}
-
-int QWebdav::remove ( const QString & path )
-{
-    QHttpRequestHeader req("DELETE", path);
-
-    return davRequest(req);
-}
-

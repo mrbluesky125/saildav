@@ -23,6 +23,29 @@
 
 #include "webdav_url_info.h"
 
+QList<QWebdavUrlInfo*> QWebdavUrlInfo::parseListReply(const QByteArray& data)
+{
+    QDomDocument multiResponse;
+    multiResponse.setContent(data, true);
+
+    QList<QWebdavUrlInfo*> infoList;
+    for(QDomNode n = multiResponse.documentElement().firstChild(); !n.isNull(); n = n.nextSibling())
+    {
+        QDomElement thisResponse = n.toElement();
+
+        if (thisResponse.isNull())
+            continue;
+
+        QWebdavUrlInfo* info = new QWebdavUrlInfo(thisResponse);
+
+        if (!info->isValid())
+            continue;
+
+        infoList << info;
+    }
+    return infoList;
+}
+
 QWebdavUrlInfo::QWebdavUrlInfo(QObject* parent) : QObject(parent)
 {
 }
@@ -45,7 +68,7 @@ QWebdavUrlInfo::QWebdavUrlInfo(const QDomElement& dom, QObject* parent) : QObjec
     }
 }
 
-QWebdavUrlInfo::QWebdavUrlInfo (const QWebdavUrlInfo& wui, QObject* parent) : QObject(parent), QUrlInfo(wui)
+QWebdavUrlInfo::QWebdavUrlInfo(const QWebdavUrlInfo& wui, QObject* parent) : QObject(parent), QUrlInfo(wui)
       ,properties_(wui.properties_)
       ,createdAt_(wui.createdAt_)
       ,displayName_(wui.displayName_)
@@ -229,7 +252,7 @@ void QWebdavUrlInfo::setEntitytag(const QString & etag)
     if(entityTag_ == etag) return;
 
     entityTag_ = etag;
-    emit entityTagChanged(entityTag_);
+    emit entitytagChanged(entityTag_);
 }
 
 void QWebdavUrlInfo::setMimeType(const QString & mime)
@@ -261,7 +284,7 @@ QString QWebdavUrlInfo::contentLanguage() const
     return contentLanguage_;
 }
 
-QString QWebdavUrlInfo::entityTag() const
+QString QWebdavUrlInfo::entitytag() const
 {
     return entityTag_;
 }
