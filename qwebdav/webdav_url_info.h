@@ -27,6 +27,8 @@
 #include <QDateTime>
 #include <QUrlInfo>
 #include <QVariant>
+#include <QtCore>
+#include <QtDeclarative>
 
 #include "webdav.h"
 
@@ -41,25 +43,26 @@ class QWebdavUrlInfo : public QObject, virtual public QUrlInfo
     Q_PROPERTY(QString entitytag READ entitytag WRITE setEntitytag NOTIFY entitytagChanged)
     Q_PROPERTY(QString mimeType READ mimeType WRITE setMimeType NOTIFY mimeTypeChanged)
 
-private:
-    QDomNode node_;
-    QWebdav::PropValues properties_;
+    Q_PROPERTY(QDeclarativeListProperty<QWebdavUrlInfo> items READ items NOTIFY itemsChanged)
 
-    QDateTime createdAt_;
-    QString displayName_;
-    QString source_;
-    QString contentLanguage_;
-    QString entityTag_;
-    QString mimeType_;
+private:
+    QDomNode m_node;
+    QWebdav::PropValues m_properties;
+
+    QDateTime m_createdAt;
+    QString m_displayName;
+    QString m_source;
+    QString m_contentLanguage;
+    QString m_entityTag;
+    QString m_mimeType;
+
+    QList<QWebdavUrlInfo*> m_items;
 
 public:
     QWebdavUrlInfo(QObject* parent = NULL);
     QWebdavUrlInfo(const QDomElement& dom, QObject* parent = NULL);
-    QWebdavUrlInfo(const QWebdavUrlInfo& wui, QObject* parent = NULL);
 
-    virtual ~QWebdavUrlInfo ();
-
-    static QList<QWebdavUrlInfo*> parseListReply(const QByteArray& data);
+    virtual ~QWebdavUrlInfo();
 
 public:
     void setCreatedAt(const QDateTime& date);
@@ -76,8 +79,19 @@ public:
     QString entitytag() const;
     QString mimeType() const;
 
+    QDeclarativeListProperty<QWebdavUrlInfo> items();
+    static void append(QDeclarativeListProperty<QWebdavUrlInfo>* list, QWebdavUrlInfo* item);
+    static int count(QDeclarativeListProperty<QWebdavUrlInfo>* list);
+    static QWebdavUrlInfo* at(QDeclarativeListProperty<QWebdavUrlInfo>* list, int index);
+
     QDomElement propElement() const;
     const QWebdav::PropValues & properties() const;
+
+public slots:
+    void error(QNetworkReply::NetworkError code);
+    void finished();
+    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+
 
 protected:
     int codeFromResponse(const QString& response);
@@ -91,6 +105,8 @@ signals:
     void contentLanguageChanged(QString);
     void entitytagChanged(QString);
     void mimeTypeChanged(QString);
+
+    void itemsChanged(QDeclarativeListProperty<QWebdavUrlInfo>);
 
 };
 

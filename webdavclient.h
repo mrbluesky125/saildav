@@ -3,7 +3,9 @@
 
 #include <QtCore>
 #include <QtNetwork>
+
 #include "webdav.h"
+#include "webdav_url_info.h"
 
 class WebdavClient : public QObject
 {
@@ -17,8 +19,12 @@ class WebdavClient : public QObject
 
     QWebdav m_webdavManager;
     QUrl m_baseUrl;
+    QString m_userName;
+    QString m_password;
     QString m_currentPath;
+
     QNetworkReply* m_currentReply;
+    QWebdavUrlInfo* m_rootItem;
 
 public:
     explicit WebdavClient(QObject *parent = 0);

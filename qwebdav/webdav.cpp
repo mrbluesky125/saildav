@@ -35,9 +35,7 @@ QWebdav::~QWebdav()
 
 void QWebdav::replyFinished(QNetworkReply* reply)
 {
-    qDebug() << "QWebdav | " << reply->header(QNetworkRequest::ContentTypeHeader);
-
-    delete m_outDataDevices.value(reply);
+    delete m_outDataDevices.value(reply, 0);
     m_outDataDevices.remove(reply);
     reply->deleteLater();
 }

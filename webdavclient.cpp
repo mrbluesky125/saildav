@@ -1,26 +1,30 @@
 #include "webdavclient.h"
+
+
 #include <QtDebug>
 
 WebdavClient::WebdavClient(QObject *parent) : QObject(parent)
   ,m_currentPath("")
+  ,m_userName("")
+  ,m_password("")
 {
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
-
+    m_rootItem = new QWebdavUrlInfo(this);
 }
 
 QString WebdavClient::baseUrl() const
 {
-    return m_baseUrl.toString();
+    return m_baseUrl.toString(QUrl::RemovePath);
 }
 
 QString WebdavClient::userName() const
 {
-    return m_baseUrl.userName();
+    return m_userName;
 }
 
 QString WebdavClient::password() const
 {
-    return m_baseUrl.password();
+    return m_password;
 }
 
 QString WebdavClient::currentPath() const
@@ -35,23 +39,23 @@ void WebdavClient::setBaseUrl(const QString& baseUrl)
     m_baseUrl.setUrl(baseUrl);
     emit baseUrlChanged(baseUrl);
 
-    refresh();
+    setCurrentPath(m_baseUrl.path());
 }
 
 void WebdavClient::setUserName(const QString& userName)
 {
-    if(this->userName() == userName) return;
+    if(m_userName == userName) return;
 
-    m_baseUrl.setUserName(userName);
-    emit userNameChanged(this->userName());
+    m_userName = userName;
+    emit userNameChanged(m_userName);
 }
 
 void WebdavClient::setPassword(const QString& password)
 {
-    if(this->password() == password) return;
+    if(m_password == password) return;
 
-    m_baseUrl.setPassword(password);
-    emit passwordChanged(this->password());
+    m_password = password;
+    emit passwordChanged(m_password);
 }
 
 void WebdavClient::setCurrentPath(const QString& currentPath)
@@ -71,31 +75,33 @@ bool WebdavClient::busy() const
 
 void WebdavClient::refresh()
 {
-    m_currentReply = m_webdavManager.list(baseUrl() + currentPath());
-    connect(m_currentReply, SIGNAL(finished()), this, SLOT(replyFinished()));
-    connect(m_currentReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
+    qDebug() << "WebdavClient | List url:" << baseUrl() + currentPath();
+    QNetworkReply* reply = m_currentReply = m_webdavManager.list(baseUrl() + currentPath());
+    connect(reply, SIGNAL(finished()), m_rootItem, SLOT(finished()));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), m_rootItem, SLOT(replyError(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), m_rootItem, SLOT(downloadProgress(qint64,qint64)));
 
+    connect(reply, SIGNAL(finished()), this, SLOT(finished()));
 }
 
 void WebdavClient::replyFinished()
 {
-    QByteArray data = m_currentReply->readAll();
 
-    m_currentReply->deleteLater();
-    m_currentReply = 0;
+
     emit busyChanged(false);
 }
 
 void WebdavClient::replyError(QNetworkReply::NetworkError error)
 {
     qDebug() << "WebdavClient | NetworkError:" << error;
-    m_currentReply->deleteLater();
-    m_currentReply = 0;
+
     emit busyChanged(false);
 }
 
 void WebdavClient::authenticationRequired(QNetworkReply* reply, QAuthenticator* authenticator)
 {
+    qDebug() << "WebdavClient | Authentification for" << m_baseUrl.toString() << "required";
+    qDebug() << "WebdavClient | Login with user:" << userName();
     authenticator->setUser(userName());
     authenticator->setPassword(password());
 }

@@ -23,27 +23,10 @@
 
 #include "webdav_url_info.h"
 
-QList<QWebdavUrlInfo*> QWebdavUrlInfo::parseListReply(const QByteArray& data)
+template<typename ElementType>
+QWebdavUrlInfo* listObject(QDeclarativeListProperty<ElementType>* list)
 {
-    QDomDocument multiResponse;
-    multiResponse.setContent(data, true);
-
-    QList<QWebdavUrlInfo*> infoList;
-    for(QDomNode n = multiResponse.documentElement().firstChild(); !n.isNull(); n = n.nextSibling())
-    {
-        QDomElement thisResponse = n.toElement();
-
-        if (thisResponse.isNull())
-            continue;
-
-        QWebdavUrlInfo* info = new QWebdavUrlInfo(thisResponse);
-
-        if (!info->isValid())
-            continue;
-
-        infoList << info;
-    }
-    return infoList;
+    return qobject_cast<QWebdavUrlInfo*>(list->object);
 }
 
 QWebdavUrlInfo::QWebdavUrlInfo(QObject* parent) : QObject(parent)
@@ -52,13 +35,14 @@ QWebdavUrlInfo::QWebdavUrlInfo(QObject* parent) : QObject(parent)
 
 QWebdavUrlInfo::~QWebdavUrlInfo()
 {
+    qDeleteAll(m_items);
 }
 
 QWebdavUrlInfo::QWebdavUrlInfo(const QDomElement& dom, QObject* parent) : QObject(parent)
 {
     QDomElement href = dom.namedItem( "href" ).toElement();
 
-    node_ = dom.cloneNode();
+    m_node = dom.cloneNode();
 
     if ( !href.isNull() )
     {
@@ -66,18 +50,6 @@ QWebdavUrlInfo::QWebdavUrlInfo(const QDomElement& dom, QObject* parent) : QObjec
         QDomNodeList propstats = dom.elementsByTagName( "propstat" );
         davParsePropstats( urlStr, propstats );
     }
-}
-
-QWebdavUrlInfo::QWebdavUrlInfo(const QWebdavUrlInfo& wui, QObject* parent) : QObject(parent), QUrlInfo(wui)
-      ,properties_(wui.properties_)
-      ,createdAt_(wui.createdAt_)
-      ,displayName_(wui.displayName_)
-      ,source_(wui.source_)
-      ,contentLanguage_(wui.contentLanguage_)
-      ,entityTag_(wui.entityTag_)
-      ,mimeType_(wui.mimeType_)
-{
-    node_ = wui.node_.cloneNode();
 }
 
 int QWebdavUrlInfo::codeFromResponse( const QString& response )
@@ -96,21 +68,29 @@ QDateTime QWebdavUrlInfo::parseDateTime( const QString& input, const QString& ty
     else if ( type == "dateTime.rfc1123" )
         datetime = QDateTime::fromString( input );
 
-    if (!datetime.isNull())
+    if (datetime.isValid())
         return datetime;
 
-    datetime = QDateTime::fromString(input.left(19), "yyyy-MM-dd'T'hh:mm:ss");
-    if (!datetime.isNull())
+    datetime = QDateTime::fromString(input.left(25), "ddd, dd MMM yyyy hh:mm:ss");
+    if (datetime.isValid())
+        return datetime;
+    datetime = QDateTime::fromString(input.left(19), "yyyy-MM-ddThh:mm:ss");
+    if (datetime.isValid())
         return datetime;
     datetime = QDateTime::fromString(input.mid(5, 20) , "d MMM yyyy hh:mm:ss");
-    if (!datetime.isNull())
+    if (datetime.isValid())
         return datetime;
     QDate date;
     QTime time;
 
     date = QDate::fromString(input.mid(5, 11) , "d MMM yyyy");
     time = QTime::fromString(input.mid(17, 8) , "hh:mm:ss");
-    return QDateTime(date, time);
+    datetime = QDateTime(date, time);
+
+    if(!datetime.isValid())
+        qDebug() << "QWebdavUrlInfo | Unknown date time format:" << input;
+
+    return datetime;
 }
 
 void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList & propstats )
@@ -148,7 +128,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
             if (property.isNull())
                 continue;
 
-            properties_[property.namespaceURI()][property.tagName()] = property.text();
+            m_properties[property.namespaceURI()][property.tagName()] = property.text();
 
             if ( property.namespaceURI() != "DAV:" ) {
                 // break out - we're only interested in properties from the DAV namespace
@@ -177,8 +157,8 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
             {
                 if ( property.text() == "httpd/unix-directory" )
                     isDirectory = true;
-                else
-                    mimeType = property.text();
+
+                mimeType = property.text();
             }
             else if ( property.tagName() == "executable" )
             {
@@ -217,89 +197,167 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
 
 void QWebdavUrlInfo::setCreatedAt(const QDateTime & date)
 {
-    if(createdAt_ == date) return;
+    if(m_createdAt == date) return;
 
-    createdAt_ = date;
-    emit createdAtChanged(createdAt_);
+    m_createdAt = date;
+    emit createdAtChanged(m_createdAt);
 }
 
 void QWebdavUrlInfo::setDisplayName(const QString & name)
 {
-    if(displayName_ == name) return;
+    if(m_displayName == name) return;
 
-    displayName_ = name;
-    emit displayNameChanged(displayName_);
+    m_displayName = name;
+    emit displayNameChanged(m_displayName);
 }
 
 void QWebdavUrlInfo::setSource(const QString & source)
 {
-    if(source_ == source) return;
+    if(m_source == source) return;
 
-    source_ = source;
-    emit sourceChanged(source_);
+    m_source = source;
+    emit sourceChanged(m_source);
 }
 
 void QWebdavUrlInfo::setContentLanguage(const QString & lang)
 {
-    if( contentLanguage_ == lang) return;
+    if( m_contentLanguage == lang) return;
 
-    contentLanguage_ = lang;
-    emit contentLanguageChanged(contentLanguage_);
+    m_contentLanguage = lang;
+    emit contentLanguageChanged(m_contentLanguage);
 }
 
 void QWebdavUrlInfo::setEntitytag(const QString & etag)
 {
-    if(entityTag_ == etag) return;
+    if(m_entityTag == etag) return;
 
-    entityTag_ = etag;
-    emit entitytagChanged(entityTag_);
+    m_entityTag = etag;
+    emit entitytagChanged(m_entityTag);
 }
 
 void QWebdavUrlInfo::setMimeType(const QString & mime)
 {
-    if(mimeType_ == mime) return;
+    if(m_mimeType == mime) return;
 
-    mimeType_ = mime;
-    emit mimeTypeChanged(mimeType_);
+    m_mimeType = mime;
+    emit mimeTypeChanged(m_mimeType);
 }
 
 
 QDateTime QWebdavUrlInfo::createdAt() const
 {
-    return createdAt_;
+    return m_createdAt;
 }
 
 QString QWebdavUrlInfo::displayName() const
 {
-    return displayName_;
+    return m_displayName;
 }
 
 QString QWebdavUrlInfo::source() const
 {
-    return source_;
+    return m_source;
 }
 
 QString QWebdavUrlInfo::contentLanguage() const
 {
-    return contentLanguage_;
+    return m_contentLanguage;
 }
 
 QString QWebdavUrlInfo::entitytag() const
 {
-    return entityTag_;
+    return m_entityTag;
 }
 
 QString QWebdavUrlInfo::mimeType() const
 {
-    return mimeType_;
+    return m_mimeType;
 }
 
 QDomElement QWebdavUrlInfo::propElement() const
 {
-    return node_.toElement();
+    return m_node.toElement();
 }
 
 const QWebdav::PropValues& QWebdavUrlInfo::properties() const
 {
-    return properties_;
+    return m_properties;
+}
+
+QDeclarativeListProperty<QWebdavUrlInfo> QWebdavUrlInfo::items()
+{
+    return QDeclarativeListProperty<QWebdavUrlInfo>(this, 0, &QWebdavUrlInfo::append, &QWebdavUrlInfo::count, &QWebdavUrlInfo::at);
+}
+
+void QWebdavUrlInfo::append(QDeclarativeListProperty<QWebdavUrlInfo> *list, QWebdavUrlInfo *item)
+{
+    if(listObject(list) == 0) return;
+
+    listObject(list)->m_items.append(item);
+}
+
+int QWebdavUrlInfo::count(QDeclarativeListProperty<QWebdavUrlInfo> *list)
+{
+    if(listObject(list) == 0) return 0;
+
+    return listObject(list)->m_items.count();
+}
+
+QWebdavUrlInfo * QWebdavUrlInfo::at(QDeclarativeListProperty<QWebdavUrlInfo> *list, int index)
+{
+    if(listObject(list) == 0) return 0;
+
+    return listObject(list)->m_items.at(index);
+}
+
+void QWebdavUrlInfo::finished()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
+
+    qDebug() << "QWebdavUrlInfo | Reply content header:" << reply->header(QNetworkRequest::ContentTypeHeader).toString();
+
+    if(reply == 0) {
+        qDebug() << "QWebdavUrlInfo | Reply seems not to be a QNetworkReply object. Reply is ignored.";
+        return;
+    }
+
+    QByteArray data = reply->readAll();
+    if(data.isEmpty()) {
+        qDebug() << "QWebdavUrlInfo | Reply has no data. Reply is ignored.";
+        return;
+    }
+
+    qDeleteAll(m_items);
+    m_items.clear();
+    emit itemsChanged(items());
+
+    QDomDocument multiResponse;
+    multiResponse.setContent(data, true);
+
+    for(QDomNode n = multiResponse.documentElement().firstChild(); !n.isNull(); n = n.nextSibling())
+    {
+        QDomElement thisResponse = n.toElement();
+
+        if (thisResponse.isNull())
+            continue;
+
+        QWebdavUrlInfo* info = new QWebdavUrlInfo(thisResponse);
+
+        qDebug() << "DEBUG" << info->name() << info->entitytag() << info->mimeType() << info->createdAt();
+
+        if (!info->isValid())
+            continue;
+
+        m_items << info;
+    }
+}
+
+void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)
+{
+    qDebug() << "QWebdavUrlInfo | Network error occured. Error code:" << code;
+}
+
+void QWebdavUrlInfo::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+{
+    qDebug() << "QWebdavUrlInfo | Download progress." << bytesReceived << "Bytes from" << bytesTotal << "received.";
 }
