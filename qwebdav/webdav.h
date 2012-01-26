@@ -1,6 +1,7 @@
 /* This file is part of QWebdav
  *
  * Copyright (C) 2009-2010 Corentin Chary <corentin.chary@gmail.com>
+ * Copyright (C) 2012 Timo Zimmermann <meedav@timozimmermann.de>
  *
  * Modified for MeeDav:
  * Copyright (C) 2012 Timo Zimmermann <meedav@timozimmermann.de>

@@ -38,6 +38,7 @@ QWebdav::~QWebdav()
 
 void QWebdav::replyFinished(QNetworkReply* reply)
 {
+<<<<<<< HEAD
     delete m_outDataDevices.value(reply, 0);
     m_outDataDevices.remove(reply);
     reply->deleteLater();
@@ -85,6 +86,57 @@ QNetworkReply* QWebdav::list(const QString& path)
     return propfind(path, query, 1);
 }
 
+=======
+    qDebug() << "QWebdav | " << reply->header(QNetworkRequest::ContentTypeHeader);
+
+    delete m_outDataDevices.value(reply);
+    m_outDataDevices.remove(reply);
+    reply->deleteLater();
+}
+
+QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
+{
+     if(outgoingData != 0 && outgoingData->size() !=0) {
+        req.setHeader(QNetworkRequest::ContentLengthHeader, outgoingData->size());
+        req.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml; charset=utf-8");
+    }
+
+    return sendCustomRequest(req, method.toAscii(), outgoingData);
+}
+
+QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, const QByteArray& outgoingData )
+{
+    QBuffer* dataIO = new QBuffer;
+    dataIO->setData(outgoingData);
+    dataIO->open(QIODevice::ReadOnly);
+
+    QNetworkReply* reply = createRequest(method, req, dataIO);
+    m_outDataDevices.insert(reply, dataIO);
+    return reply;
+}
+
+QNetworkReply* QWebdav::list(const QString& path)
+{
+    QWebdav::PropNames query;
+    QStringList props;
+
+    props << "creationdate";
+    props << "getcontentlength";
+    props << "displayname";
+    props << "source";
+    props << "getcontentlanguage";
+    props << "getcontenttype";
+    props << "executable";
+    props << "getlastmodified";
+    props << "getetag";
+    props << "resourcetype";
+
+    query["DAV:"] = props;
+
+    return propfind(path, query, 1);
+}
+
+>>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
 QNetworkReply* QWebdav::search(const QString& path, const QString& q )
 {
     QByteArray query = "<?xml version=\"1.0\"?>\r\n";

@@ -3,9 +3,13 @@
 
 #include <QtCore>
 #include <QtNetwork>
+<<<<<<< HEAD
 
 #include "webdav.h"
 #include "webdavfileinfo.h"
+=======
+#include "webdav.h"
+>>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
 
 class WebdavClient : public QObject
 {
@@ -16,6 +20,7 @@ class WebdavClient : public QObject
     Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
     Q_PROPERTY(QString currentPath READ currentPath WRITE setCurrentPath NOTIFY currentPathChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
+<<<<<<< HEAD
     Q_PROPERTY(QWebdavUrlInfo* currentItem READ currentItem NOTIFY currentItemChanged)
 
     QWebdav m_webdavManager;
@@ -26,6 +31,13 @@ class WebdavClient : public QObject
 
     QWebdavUrlInfo* m_rootItem;
     QWebdavUrlInfo* m_currentItem;
+=======
+
+    QWebdav m_webdavManager;
+    QUrl m_baseUrl;
+    QString m_currentPath;
+    QNetworkReply* m_currentReply;
+>>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
 
 public:
     explicit WebdavClient(QObject *parent = 0);
@@ -40,7 +52,10 @@ public:
     void setPassword(const QString&);
     void setCurrentPath(const QString&);
 
+<<<<<<< HEAD
     QWebdavUrlInfo* currentItem();
+=======
+>>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
     bool busy() const;
 
 public slots:
@@ -57,7 +72,10 @@ signals:
     void passwordChanged(QString);
     void currentPathChanged(QString);
     void busyChanged(bool);
+<<<<<<< HEAD
     void currentItemChanged(QWebdavUrlInfo*);
+=======
+>>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
 
 };
 
