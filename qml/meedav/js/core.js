@@ -32,13 +32,8 @@ function updateAccount(account)
 {
     _db.transaction(
                 function(tx){
-<<<<<<< HEAD
                     tx.executeSql("UPDATE accounts SET username = ?, password = ?, url = ? \
                                   WHERE id = ?", [account.username, account.password, account.url, account.id]);
-=======
-                    tx.executeSql("UPDATE accounts SET username = ?, password = ? \
-                                  WHERE url = ?", [account.username, account.password, account.url]);
->>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
                 }
                 )
 }
@@ -61,19 +56,11 @@ function createAccount(account)
                 )
 }
 
-<<<<<<< HEAD
 function getAccount() {
     var data = {}
     _db.readTransaction(
                 function(tx){
                     var rs = tx.executeSql("SELECT * FROM accounts")
-=======
-function getAccount(url) {
-    var data = {}
-    _db.readTransaction(
-                function(tx){
-                    var rs = tx.executeSql("SELECT * FROM accounts WHERE url=?", [url])
->>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
                     if(rs.rows.length === 1) {
                         data = rs.rows.item(0)
                     }

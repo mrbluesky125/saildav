@@ -7,19 +7,13 @@ PageStackWindow {
 
     initialPage: mainPage
 
-<<<<<<< HEAD
     property variant accountPage: AccountPage {}
     property variant mainPage: MainPage {}
-=======
-    MainPage {
-        id: mainPage
-    }
->>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
+
 
     ToolBarLayout {
         id: commonTools
         visible: true
-<<<<<<< HEAD
 
         ToolIcon {
             platformIconId: "toolbar-back"
@@ -40,17 +34,18 @@ PageStackWindow {
         ToolIcon {
             platformIconId: "toolbar-back"
             onClicked: appWindow.pageStack.pop()
-=======
+        }
+
         ToolIcon {
             platformIconId: "toolbar-view-menu"
             anchors.right: (parent === undefined) ? undefined : parent.right
             onClicked: (myMenu.status == DialogStatus.Closed) ? myMenu.open() : myMenu.close()
->>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
+
         }
     }
 
     Menu {
-<<<<<<< HEAD
+
         id: menu
         visualParent: pageStack
         MenuLayout {
@@ -62,19 +57,11 @@ PageStackWindow {
                 text: qsTr("About")
                 onClicked: appWindow.pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
             }
-=======
-        id: myMenu
-        visualParent: pageStack
-        MenuLayout {
-            MenuItem { text: qsTr("Sample menu item") }
->>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
         }
     }
 
-    Component.onCompleted:
-    {
+    Component.onCompleted: {
         Core.openDB();
-<<<<<<< HEAD
         if(Core.getAccount()["url"] === undefined) {
             Core.createAccount(Core.defaultAccount());
             appWindow.pageStack.push(appWindow.accountPage, {account: Core.getAccount()});
@@ -85,7 +72,5 @@ PageStackWindow {
             webdavClient.password = account.password;
             webdavClient.baseUrl = account.url;
         }
-=======
->>>>>>> 3377a1c28989e4702eddc49df85df93beb09578a
     }
 }
