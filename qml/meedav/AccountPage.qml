@@ -64,7 +64,11 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "Save"
             onClicked: {
-                Core.updateAccount( {id: account.id, username: usernameField.text, password: passwordField.text, url: urlField.text } );
+                var updateAccount =  {id: account.id, username: usernameField.text, password: passwordField.text, url: urlField.text }
+                Core.updateAccount( updateAccount );
+                webdavClient.userName = updateAccount.username;
+                webdavClient.password = updateAccount.password;
+                webdavClient.baseUrl = updateAccount.url;
                 root.pageStack.pop();
             }
         }

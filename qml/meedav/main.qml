@@ -15,6 +15,11 @@ PageStackWindow {
         visible: true
 
         ToolIcon {
+            platformIconId: "toolbar-back"
+            onClicked: webdavClient.currentPath = webdavClient.currentPath + "../"
+        }
+
+        ToolIcon {
             platformIconId: "toolbar-view-menu"
             anchors.right: (parent === undefined) ? undefined : parent.right
             onClicked: (menu.status == DialogStatus.Closed) ? menu.open() : menu.close()
@@ -52,6 +57,12 @@ PageStackWindow {
         if(Core.getAccount()["url"] === undefined) {
             Core.createAccount(Core.defaultAccount());
             appWindow.pageStack.push(appWindow.accountPage, {account: Core.getAccount()});
+        }
+        else {
+            var account = Core.getAccount();
+            webdavClient.userName = account.username;
+            webdavClient.password = account.password;
+            webdavClient.baseUrl = account.url;
         }
     }
 }

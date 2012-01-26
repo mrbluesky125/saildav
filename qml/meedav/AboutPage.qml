@@ -34,7 +34,7 @@ Page {
             height: 64
             width: 64
             smooth: true
-            //source: "images/meedav.png"
+            source: "images/meedav.svg"
         }
 
         Label {

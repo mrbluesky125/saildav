@@ -21,6 +21,8 @@ Rectangle {
         anchors.leftMargin: 12
         height: 56
         width: 56
+        smooth: true
+        source: "../images/meedav.svg"
     }
 
     Label {

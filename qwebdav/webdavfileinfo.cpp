@@ -440,6 +440,7 @@ void QWebdavUrlInfo::finished()
 
         m_items << info.take();
     }
+    emit itemsChanged(items());
 }
 
 void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)

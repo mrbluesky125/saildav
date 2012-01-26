@@ -34,7 +34,7 @@ QString WebdavClient::currentPath() const
 
 void WebdavClient::setBaseUrl(const QString& baseUrl)
 {
-    if(m_baseUrl.toString() == baseUrl) return;
+    //if(m_baseUrl.toString() == baseUrl) return;
 
     m_baseUrl.setUrl(baseUrl);
     emit baseUrlChanged(baseUrl);
