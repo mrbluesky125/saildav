@@ -5,7 +5,7 @@
 #include <QtNetwork>
 
 #include "webdav.h"
-#include "webdav_url_info.h"
+#include "webdavfileinfo.h"
 
 class WebdavClient : public QObject
 {
@@ -16,6 +16,7 @@ class WebdavClient : public QObject
     Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
     Q_PROPERTY(QString currentPath READ currentPath WRITE setCurrentPath NOTIFY currentPathChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
+    Q_PROPERTY(QWebdavUrlInfo* currentItem READ currentItem NOTIFY currentItemChanged)
 
     QWebdav m_webdavManager;
     QUrl m_baseUrl;
@@ -23,8 +24,8 @@ class WebdavClient : public QObject
     QString m_password;
     QString m_currentPath;
 
-    QNetworkReply* m_currentReply;
     QWebdavUrlInfo* m_rootItem;
+    QWebdavUrlInfo* m_currentItem;
 
 public:
     explicit WebdavClient(QObject *parent = 0);
@@ -39,6 +40,7 @@ public:
     void setPassword(const QString&);
     void setCurrentPath(const QString&);
 
+    QWebdavUrlInfo* currentItem();
     bool busy() const;
 
 public slots:
@@ -55,6 +57,7 @@ signals:
     void passwordChanged(QString);
     void currentPathChanged(QString);
     void busyChanged(bool);
+    void currentItemChanged(QWebdavUrlInfo*);
 
 };
 

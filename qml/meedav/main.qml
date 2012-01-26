@@ -7,30 +7,52 @@ PageStackWindow {
 
     initialPage: mainPage
 
-    MainPage {
-        id: mainPage
-    }
+    property variant accountPage: AccountPage {}
+    property variant mainPage: MainPage {}
 
     ToolBarLayout {
         id: commonTools
         visible: true
+
         ToolIcon {
             platformIconId: "toolbar-view-menu"
             anchors.right: (parent === undefined) ? undefined : parent.right
-            onClicked: (myMenu.status == DialogStatus.Closed) ? myMenu.open() : myMenu.close()
+            onClicked: (menu.status == DialogStatus.Closed) ? menu.open() : menu.close()
+        }
+    }
+
+    ToolBarLayout {
+        id: topLevelTools
+        visible: false
+
+        ToolIcon {
+            platformIconId: "toolbar-back"
+            onClicked: appWindow.pageStack.pop()
         }
     }
 
     Menu {
-        id: myMenu
+        id: menu
         visualParent: pageStack
         MenuLayout {
-            MenuItem { text: qsTr("Sample menu item") }
+            MenuItem {
+                text: qsTr("Account")
+                onClicked: appWindow.pageStack.push(appWindow.accountPage, {account: Core.getAccount()});
+            }
+            MenuItem {
+                text: qsTr("About")
+                onClicked: appWindow.pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+            }
         }
     }
 
     Component.onCompleted:
     {
         Core.openDB();
+        if(Core.getAccount()["url"] === undefined) {
+            Core.createAccount(Core.defaultAccount());
+            appWindow.pageStack.push(appWindow.accountPage, {account: Core.getAccount()});
+        }
+        Core.printObject(Core.getAccount());
     }
 }

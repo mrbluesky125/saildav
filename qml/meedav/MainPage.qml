@@ -1,8 +1,13 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "components"
 
 Page {
     tools: commonTools
+
+    PageHeader {
+        text: "MeeDav"
+    }
 
     Label {
         id: label

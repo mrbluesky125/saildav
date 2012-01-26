@@ -2,6 +2,9 @@
  *
  * Copyright (C) 2009-2010 Corentin Chary <corentin.chary@gmail.com>
  *
+ * Modified for MeeDav:
+ * Copyright (C) 2012 Timo Zimmermann <meedav@timozimmermann.de>
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
@@ -21,7 +24,7 @@
 #include <QUrl>
 #include <QDebug>
 
-#include "webdav_url_info.h"
+#include "webdavfileinfo.h"
 
 template<typename ElementType>
 QWebdavUrlInfo* listObject(QDeclarativeListProperty<ElementType>* list)
@@ -194,6 +197,93 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
         setMimeType(mimeType);
 }
 
+void QWebdavUrlInfo::setDir(bool b)
+{
+    if(isDir() == b) return;
+
+    QUrlInfo::setDir(b);
+    emit dirChanged(b);
+}
+
+void QWebdavUrlInfo::setFile(bool b)
+{
+    if(isFile() == b) return;
+
+    QUrlInfo::setFile(b);
+    emit fileChanged(b);
+}
+
+void QWebdavUrlInfo::setGroup(const QString& s)
+{
+    if(group() == s) return;
+
+    QUrlInfo::setGroup(s);
+    emit groupChanged(s);
+}
+
+void QWebdavUrlInfo::setLastModified(const QDateTime& dt)
+{
+    if(lastModified() == dt) return;
+
+    QUrlInfo::setLastModified(dt);
+    emit lastModifiedChanged(dt);
+}
+
+void QWebdavUrlInfo::setName(const QString& name)
+{
+    if(QUrlInfo::name() == name) return;
+
+    QUrlInfo::setName(name);
+    emit nameChanged(name);
+}
+
+void QWebdavUrlInfo::setOwner(const QString& s)
+{
+    if(owner() == s) return;
+
+    QUrlInfo::setOwner(s);
+    emit ownerChanged(s);
+}
+
+void QWebdavUrlInfo::setPermissions(int p)
+{
+    if(permissions() == p) return;
+
+    QUrlInfo::setPermissions(p);
+    emit permissionsChanged(p);
+}
+
+void QWebdavUrlInfo::setReadable(bool b)
+{
+    if(isReadable() == b) return;
+
+    QUrlInfo::setReadable(b);
+    emit readableChanged(b);
+}
+
+void QWebdavUrlInfo::setSize(qint64 size)
+{
+    if(QUrlInfo::size() == size) return;
+
+    QUrlInfo::setSize(size);
+    emit sizeChanged(size);
+}
+
+void QWebdavUrlInfo::setSymLink(bool b)
+{
+    if(isSymLink() == b) return;
+
+    QUrlInfo::setSymLink(b);
+    emit symLinkChanged(b);
+}
+
+void QWebdavUrlInfo::setWritable(bool b)
+{
+    if(isWritable() == b) return;
+
+    QUrlInfo::setWritable(b);
+    emit writableChanged(b);
+}
 
 void QWebdavUrlInfo::setCreatedAt(const QDateTime & date)
 {
@@ -314,12 +404,12 @@ void QWebdavUrlInfo::finished()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
 
-    qDebug() << "QWebdavUrlInfo | Reply content header:" << reply->header(QNetworkRequest::ContentTypeHeader).toString();
-
     if(reply == 0) {
         qDebug() << "QWebdavUrlInfo | Reply seems not to be a QNetworkReply object. Reply is ignored.";
         return;
     }
+
+    qDebug() << "QWebdavUrlInfo | Reply content header:" << reply->header(QNetworkRequest::ContentTypeHeader).toString();
 
     QByteArray data = reply->readAll();
     if(data.isEmpty()) {
@@ -341,14 +431,14 @@ void QWebdavUrlInfo::finished()
         if (thisResponse.isNull())
             continue;
 
-        QWebdavUrlInfo* info = new QWebdavUrlInfo(thisResponse);
+        QScopedPointer<QWebdavUrlInfo> info(new QWebdavUrlInfo(thisResponse));
 
         qDebug() << "DEBUG" << info->name() << info->entitytag() << info->mimeType() << info->createdAt();
 
         if (!info->isValid())
             continue;
 
-        m_items << info;
+        m_items << info.take();
     }
 }
 

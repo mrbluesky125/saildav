@@ -2,6 +2,9 @@
  *
  * Copyright (C) 2009-2010 Corentin Chary <corentin.chary@gmail.com>
  *
+ * Modified for MeeDav:
+ * Copyright (C) 2012 Timo Zimmermann <meedav@timozimmermann.de>
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
@@ -22,7 +25,7 @@
 #include <QtDebug>
 
 #include "webdav.h"
-#include "webdav_url_info.h"
+#include "webdavfileinfo.h"
 
 QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
 {

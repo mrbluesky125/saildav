@@ -9,7 +9,7 @@ WebdavClient::WebdavClient(QObject *parent) : QObject(parent)
   ,m_password("")
 {
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
-    m_rootItem = new QWebdavUrlInfo(this);
+    m_currentItem = m_rootItem = new QWebdavUrlInfo(this);
 }
 
 QString WebdavClient::baseUrl() const
@@ -70,18 +70,19 @@ void WebdavClient::setCurrentPath(const QString& currentPath)
 
 bool WebdavClient::busy() const
 {
-    return m_currentReply != 0;
+    return true;
 }
 
 void WebdavClient::refresh()
 {
     qDebug() << "WebdavClient | List url:" << baseUrl() + currentPath();
-    QNetworkReply* reply = m_currentReply = m_webdavManager.list(baseUrl() + currentPath());
+    QNetworkReply* reply = m_webdavManager.list(baseUrl() + currentPath());
     connect(reply, SIGNAL(finished()), m_rootItem, SLOT(finished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), m_rootItem, SLOT(replyError(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), m_rootItem, SLOT(error(QNetworkReply::NetworkError)));
     connect(reply, SIGNAL(downloadProgress(qint64,qint64)), m_rootItem, SLOT(downloadProgress(qint64,qint64)));
 
-    connect(reply, SIGNAL(finished()), this, SLOT(finished()));
+    //client handling - maybe removed
+    connect(reply, SIGNAL(finished()), this, SLOT(replyFinished()));
 }
 
 void WebdavClient::replyFinished()
@@ -104,4 +105,9 @@ void WebdavClient::authenticationRequired(QNetworkReply* reply, QAuthenticator* 
     qDebug() << "WebdavClient | Login with user:" << userName();
     authenticator->setUser(userName());
     authenticator->setPassword(password());
+}
+
+QWebdavUrlInfo* WebdavClient::currentItem()
+{
+    return m_currentItem;
 }

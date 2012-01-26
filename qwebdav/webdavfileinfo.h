@@ -2,6 +2,9 @@
  *
  * Copyright (C) 2009-2010 Corentin Chary <corentin.chary@gmail.com>
  *
+ * Modified for MeeDav:
+ * Copyright (C) 2012 Timo Zimmermann <meedav@timozimmermann.de>
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
@@ -24,9 +27,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <QDomNodeList>
-#include <QDateTime>
-#include <QUrlInfo>
-#include <QVariant>
+
 #include <QtCore>
 #include <QtDeclarative>
 
@@ -35,6 +36,18 @@
 class QWebdavUrlInfo : public QObject, virtual public QUrlInfo
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool dir READ isDir WRITE setDir NOTIFY dirChanged)
+    Q_PROPERTY(bool file READ isFile WRITE setFile NOTIFY fileChanged)
+    Q_PROPERTY(QString group READ group WRITE setGroup NOTIFY groupChanged)
+    Q_PROPERTY(QDateTime lastModified READ lastModified WRITE setLastModified NOTIFY lastModifiedChanged)
+    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+    Q_PROPERTY(QString owner READ owner WRITE setOwner NOTIFY ownerChanged)
+    Q_PROPERTY(int permissions READ permissions WRITE setPermissions NOTIFY permissionsChanged)
+    Q_PROPERTY(bool readable READ isReadable WRITE setReadable NOTIFY readableChanged)
+    Q_PROPERTY(qint64 size READ size WRITE setSize NOTIFY sizeChanged)
+    Q_PROPERTY(bool symLink READ isSymLink WRITE setSymLink NOTIFY symLinkChanged)
+    Q_PROPERTY(bool writable READ isWritable WRITE setWritable NOTIFY writableChanged)
 
     Q_PROPERTY(QDateTime createdAt READ createdAt WRITE setCreatedAt NOTIFY createdAtChanged)
     Q_PROPERTY(QString displayName READ displayName WRITE setDisplayName NOTIFY displayNameChanged)
@@ -65,6 +78,18 @@ public:
     virtual ~QWebdavUrlInfo();
 
 public:
+    void setDir(bool b);
+    void setFile(bool b);
+    void setGroup(const QString & s);
+    void setLastModified(const QDateTime & dt);
+    void setName(const QString & name);
+    void setOwner(const QString & s);
+    void setPermissions(int p);
+    void setReadable(bool b);
+    void setSize(qint64 size);
+    void setSymLink(bool b);
+    void setWritable(bool b);
+
     void setCreatedAt(const QDateTime& date);
     void setDisplayName(const QString& name);
     void setSource(const QString& source);
@@ -92,13 +117,24 @@ public slots:
     void finished();
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
-
 protected:
     int codeFromResponse(const QString& response);
     QDateTime parseDateTime(const QString& input, const QString& type);
     void davParsePropstats(const QString& path, const QDomNodeList& propstat);
 
 signals:
+    void dirChanged(bool);
+    void fileChanged(bool);
+    void groupChanged(QString);
+    void lastModifiedChanged(QDateTime);
+    void nameChanged(QString);
+    void ownerChanged(QString);
+    void permissionsChanged(int);
+    void readableChanged(bool);
+    void sizeChanged(qint64);
+    void symLinkChanged(bool);
+    void writableChanged(bool);
+
     void createdAtChanged(QDateTime);
     void displayNameChanged(QString);
     void sourceChanged(QString);

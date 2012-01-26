@@ -56,11 +56,11 @@ function createAccount(account)
                 )
 }
 
-function getAccount(url) {
+function getAccount() {
     var data = {}
     _db.readTransaction(
                 function(tx){
-                    var rs = tx.executeSql("SELECT * FROM accounts WHERE url=?", [url])
+                    var rs = tx.executeSql("SELECT * FROM accounts")
                     if(rs.rows.length === 1) {
                         data = rs.rows.item(0)
                     }
