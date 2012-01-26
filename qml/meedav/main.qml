@@ -53,6 +53,5 @@ PageStackWindow {
             Core.createAccount(Core.defaultAccount());
             appWindow.pageStack.push(appWindow.accountPage, {account: Core.getAccount()});
         }
-        Core.printObject(Core.getAccount());
     }
 }

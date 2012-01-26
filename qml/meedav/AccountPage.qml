@@ -64,7 +64,7 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "Save"
             onClicked: {
-                Core.updateAccount(account);
+                Core.updateAccount( {id: account.id, username: usernameField.text, password: passwordField.text, url: urlField.text } );
                 root.pageStack.pop();
             }
         }

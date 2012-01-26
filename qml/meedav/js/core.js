@@ -32,8 +32,8 @@ function updateAccount(account)
 {
     _db.transaction(
                 function(tx){
-                    tx.executeSql("UPDATE accounts SET username = ?, password = ? \
-                                  WHERE url = ?", [account.username, account.password, account.url]);
+                    tx.executeSql("UPDATE accounts SET username = ?, password = ?, url = ? \
+                                  WHERE id = ?", [account.username, account.password, account.url, account.id]);
                 }
                 )
 }
