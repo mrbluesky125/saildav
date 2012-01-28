@@ -1,7 +1,5 @@
 
 
-
-
 #include <QtGui/QApplication>
 #include <QtDeclarative>
 #include "qmlapplicationviewer.h"

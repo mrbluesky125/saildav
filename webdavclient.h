@@ -15,14 +15,16 @@ class WebdavClient : public QObject
     Q_PROPERTY(QString baseUrl READ baseUrl WRITE setBaseUrl NOTIFY baseUrlChanged)
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged)
     Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
-    Q_PROPERTY(QString currentPath READ currentPath WRITE setCurrentPath NOTIFY currentPathChanged)
+    Q_PROPERTY(QString homePath READ homePath WRITE setHomePath NOTIFY homePathChanged)
+    Q_PROPERTY(QString downloadPath READ downloadPath WRITE setDownloadPath NOTIFY downloadPathChanged)
     Q_PROPERTY(QWebdavUrlInfo* currentItem READ currentItem NOTIFY currentItemChanged)
 
     QWebdav m_webdavManager;
     QUrl m_baseUrl;
     QString m_userName;
     QString m_password;
-    QString m_currentPath;
+    QString m_homePath;
+    QString m_downloadPath;
 
     QWebdavUrlInfo* m_rootItem;
     QWebdavUrlInfo* m_currentItem;
@@ -33,17 +35,25 @@ public:
     QString baseUrl() const;
     QString userName() const;
     QString password() const;
-    QString currentPath() const;
+    QString homePath() const;
+    QString downloadPath() const;
 
     void setBaseUrl(const QString&);
     void setUserName(const QString&);
     void setPassword(const QString&);
-    void setCurrentPath(const QString&);
+    void setHomePath(const QString&);
+    void setDownloadPath(const QString&);
 
     QWebdavUrlInfo* currentItem();
+    void setCurrentItem(QWebdavUrlInfo*);
+
+protected:
+    QWebdavUrlInfo* createCachePath(const QString&);
+    QWebdavUrlInfo* createCacheDir(QWebdavUrlInfo*, const QString&);
 
 public slots:
-    void cdUp();
+    void download(const QString& path);
+    void cd(const QString& dir);
     void refresh();
 
 protected slots:
@@ -55,7 +65,8 @@ signals:
     void baseUrlChanged(QString);
     void userNameChanged(QString);
     void passwordChanged(QString);
-    void currentPathChanged(QString);
+    void homePathChanged(QString);
+    void downloadPathChanged(QString);
     void currentItemChanged(QWebdavUrlInfo*);
 
 

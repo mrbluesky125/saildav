@@ -12,6 +12,7 @@
 #define QMLAPPLICATIONVIEWER_H
 
 #include <QtDeclarative/QDeclarativeView>
+#include <QtDeclarative/QDeclarativeContext>
 
 class QmlApplicationViewer : public QDeclarativeView
 {
@@ -31,6 +32,7 @@ public:
 
     void setMainQmlFile(const QString &file);
     void addImportPath(const QString &path);
+    QDeclarativeContext* rootContext() const;
 
     // Note that this will only have an effect on Symbian and Fremantle.
     void setOrientation(ScreenOrientation orientation);

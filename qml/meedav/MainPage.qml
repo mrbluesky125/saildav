@@ -8,7 +8,8 @@ Page {
 
     PageHeader {
         id: appTitleRect
-        text: webdavClient.currentPath
+        text: webdavClient.currentItem.name == webdavClient.homePath ? "Home" : webdavClient.currentItem.displayName
+        busy: webdavClient.currentItem.busy
     }
 
     ListView {
@@ -17,7 +18,11 @@ Page {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.margins: 0
+        spacing: 10
         clip: true
+
+        section.property: "displayName"
+        section.criteria: ViewSection.FirstCharacter
 
         delegate: WebdavUrlInfoDelegate { }
         model: webdavClient.currentItem.childs

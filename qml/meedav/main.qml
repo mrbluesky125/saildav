@@ -17,7 +17,17 @@ PageStackWindow {
 
         ToolIcon {
             platformIconId: "toolbar-back"
-            onClicked: webdavClient.cdUp()
+            onClicked: webdavClient.cd("..")
+        }
+
+        ToolIcon {
+            platformIconId: "toolbar-home"
+            onClicked: webdavClient.cd(webdavClient.homePath)
+        }
+
+        ToolIcon {
+            platformIconId: "toolbar-refresh"
+            onClicked: webdavClient.refresh()
         }
 
         ToolIcon {
@@ -73,4 +83,6 @@ PageStackWindow {
             webdavClient.baseUrl = account.url;
         }
     }
+
+
 }

@@ -98,6 +98,14 @@ QNetworkReply* QWebdav::search(const QString& path, const QString& q )
     return this->createRequest("SEARCH", req, query);
 }
 
+QNetworkReply* QWebdav::get(const QString& path)
+{
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
+
+    return QNetworkAccessManager::get(req);
+}
+
 QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
 {
     QNetworkRequest req;

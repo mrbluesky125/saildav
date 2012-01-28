@@ -5,7 +5,7 @@ Item {
     id: root
     anchors.margins: 6
     width: parent.width
-    height: 64
+    height: 100
 
     Rectangle {
         id: background
@@ -18,17 +18,17 @@ Item {
 
     Row {
         anchors.fill: parent
-        spacing: 6
+        spacing: 10
         Image {
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
             width: parent.height
-            source: ""
+            source: dir ? "image://theme/icon-m-common-directory" : ""
         }
 
         Label {
             anchors.verticalCenter: parent.verticalCenter
-            text: name
+            text: displayName
         }
     }
 
@@ -37,6 +37,11 @@ Item {
         onPressed: background.opacity = 1.0;
         onReleased: background.opacity = 0.0;
         onPositionChanged: background.opacity = 0.0;
-        onClicked: webdavClient.currentPath = name;
+        onClicked: {
+            if(dir)
+                webdavClient.cd(name);
+            else if(file)
+                webdavClient.download(name);
+        }
     }
 }

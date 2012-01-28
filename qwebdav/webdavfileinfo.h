@@ -76,6 +76,7 @@ private:
 
 public:
     QWebdavUrlInfo(QWebdavUrlInfo* parent = 0);
+    QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent = 0);
     virtual ~QWebdavUrlInfo();
 
 public:

@@ -26,9 +26,14 @@
 
 #include "webdavfileinfo.h"
 
-
 QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : AbstractTreeItem(parent)
 {
+
+}
+
+QWebdavUrlInfo::QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent) : AbstractTreeItem(parent)
+{
+    QUrlInfo::setName(name);
 }
 
 QWebdavUrlInfo::~QWebdavUrlInfo()
@@ -216,6 +221,9 @@ void QWebdavUrlInfo::setName(const QString& name)
 
     QUrlInfo::setName(name);
     emit nameChanged(name);
+
+    if(name.isEmpty()) return;
+    setDisplayName(name.split('/', QString::SkipEmptyParts).back());
 }
 
 void QWebdavUrlInfo::setOwner(const QString& s)
@@ -382,8 +390,8 @@ const QWebdav::PropValues& QWebdavUrlInfo::properties() const
 
 void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
 {
-    //clear childs
-    removeChildren(0, childCount());
+    //get current child list
+    QList<AbstractTreeItem*> oldItems = childList();
 
     QDomDocument multiResponse;
     multiResponse.setContent(xmlData, true);
@@ -395,21 +403,27 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
         if(thisResponse.isNull())
             continue;
 
-        //this response belongs to the item itself
-        if(thisResponse.namedItem("href").toElement().text().toUtf8() == name()) {
-            setResponse(thisResponse);
-            continue;
+        QString responseName = QUrl::fromPercentEncoding(thisResponse.namedItem("href").toElement().text().toUtf8());
+        if(responseName.isEmpty()) continue;
+
+        QWebdavUrlInfo* item = static_cast<QWebdavUrlInfo*>(findFirst(responseName, "name"));
+
+        if(item != 0) { //item is already in the list - update only
+            item->setResponse(thisResponse);
+            oldItems.removeAll(item);
+        }
+        else { //add new item
+            item = new QWebdavUrlInfo();
+            item->setResponse(thisResponse);
+            addChild(item);
         }
 
-        QScopedPointer<QWebdavUrlInfo> info(new QWebdavUrlInfo());
-        info->setResponse(thisResponse);
+        qDebug() << "QWebdavUrlInfo | Response received: " << item->name();
+    }
 
-        qDebug() << "DEBUG" << info->name() << info->entitytag() << info->mimeType() << info->createdAt();
-
-        if (!info->isValid())
-            continue;
-
-        addChild(info.take());
+    //remove not updated items
+    foreach(AbstractTreeItem* item, oldItems) {
+        removeChild(item);
     }
 }
 
@@ -435,7 +449,8 @@ void QWebdavUrlInfo::finished()
         return;
     }
 
-    qDebug() << "QWebdavUrlInfo | Reply content header:" << reply->header(QNetworkRequest::ContentTypeHeader).toString();
+    QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+    qDebug() << "QWebdavUrlInfo | Reply content header:" << contentType;
 
     QByteArray data = reply->readAll();
     if(data.isEmpty()) {
@@ -443,11 +458,18 @@ void QWebdavUrlInfo::finished()
         return;
     }
 
-    //most likely a entry listing
-    //if(reply->header(QNetworkRequest::ContentTypeHeader).toString() == "text/xml") {
+    if(contentType.contains("xml"))
         setMultiResponse(data);
-    //}
+    else if(isFile()) {
+        qDebug() << "QWebdavUrlInfo | File download finished.";
+        QFile file(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/" + displayName());
+        file.open(QFile::WriteOnly);
+        file.write(data);
+        file.close();
+    }
+
     setBusy(false);
+    reply->deleteLater();
 }
 
 void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)
@@ -458,6 +480,7 @@ void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)
 
 void QWebdavUrlInfo::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
+    setBusy(true);
     qreal progress = (qreal)bytesReceived/(qreal)bytesTotal;
     setProgress(progress > 0 ? progress : bytesTotal);
     qDebug() << "QWebdavUrlInfo | Download progress." << bytesReceived << "Bytes from" << bytesTotal << "received.";
