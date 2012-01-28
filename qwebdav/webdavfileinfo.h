@@ -32,8 +32,9 @@
 #include <QtDeclarative>
 
 #include "webdav.h"
+#include "abstracttreeitem.h"
 
-class QWebdavUrlInfo : public QObject, virtual public QUrlInfo
+class QWebdavUrlInfo : public AbstractTreeItem, virtual public QUrlInfo
 {
     Q_OBJECT
 
@@ -56,7 +57,8 @@ class QWebdavUrlInfo : public QObject, virtual public QUrlInfo
     Q_PROPERTY(QString entitytag READ entitytag WRITE setEntitytag NOTIFY entitytagChanged)
     Q_PROPERTY(QString mimeType READ mimeType WRITE setMimeType NOTIFY mimeTypeChanged)
 
-    Q_PROPERTY(QDeclarativeListProperty<QWebdavUrlInfo> items READ items NOTIFY itemsChanged)
+    Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
+    Q_PROPERTY(bool busy READ isBusy NOTIFY busyChanged)
 
 private:
     QDomNode m_node;
@@ -69,12 +71,11 @@ private:
     QString m_entityTag;
     QString m_mimeType;
 
-    QList<QWebdavUrlInfo*> m_items;
+    qreal m_progress;
+    bool m_busy;
 
 public:
-    QWebdavUrlInfo(QObject* parent = NULL);
-    QWebdavUrlInfo(const QDomElement& dom, QObject* parent = NULL);
-
+    QWebdavUrlInfo(QWebdavUrlInfo* parent = 0);
     virtual ~QWebdavUrlInfo();
 
 public:
@@ -89,7 +90,6 @@ public:
     void setSize(qint64 size);
     void setSymLink(bool b);
     void setWritable(bool b);
-
     void setCreatedAt(const QDateTime& date);
     void setDisplayName(const QString& name);
     void setSource(const QString& source);
@@ -104,10 +104,8 @@ public:
     QString entitytag() const;
     QString mimeType() const;
 
-    QDeclarativeListProperty<QWebdavUrlInfo> items();
-    static void append(QDeclarativeListProperty<QWebdavUrlInfo>* list, QWebdavUrlInfo* item);
-    static int count(QDeclarativeListProperty<QWebdavUrlInfo>* list);
-    static QWebdavUrlInfo* at(QDeclarativeListProperty<QWebdavUrlInfo>* list, int index);
+    qreal progress() const;
+    bool isBusy() const;
 
     QDomElement propElement() const;
     const QWebdav::PropValues & properties() const;
@@ -118,6 +116,12 @@ public slots:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
 protected:
+    void setProgress(qreal progress);
+    void setBusy(bool busy);
+
+    void setMultiResponse(const QString& xmlData);
+    void setResponse(const QDomElement& dom);
+
     int codeFromResponse(const QString& response);
     QDateTime parseDateTime(const QString& input, const QString& type);
     void davParsePropstats(const QString& path, const QDomNodeList& propstat);
@@ -134,7 +138,6 @@ signals:
     void sizeChanged(qint64);
     void symLinkChanged(bool);
     void writableChanged(bool);
-
     void createdAtChanged(QDateTime);
     void displayNameChanged(QString);
     void sourceChanged(QString);
@@ -142,8 +145,8 @@ signals:
     void entitytagChanged(QString);
     void mimeTypeChanged(QString);
 
-    void itemsChanged(QDeclarativeListProperty<QWebdavUrlInfo>);
-
+    void progressChanged(qreal);
+    void busyChanged(bool);
 };
 
 #endif /* QWEBDAV_URL_INFO_H */

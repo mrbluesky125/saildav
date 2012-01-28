@@ -8,7 +8,7 @@ Page {
 
     PageHeader {
         id: appTitleRect
-        text: "MeeDav"
+        text: webdavClient.currentPath
     }
 
     ListView {
@@ -20,6 +20,6 @@ Page {
         clip: true
 
         delegate: WebdavUrlInfoDelegate { }
-        model: webdavClient.currentItem.items
+        model: webdavClient.currentItem.childs
     }
 }

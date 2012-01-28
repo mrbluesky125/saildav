@@ -17,7 +17,7 @@ PageStackWindow {
 
         ToolIcon {
             platformIconId: "toolbar-back"
-            onClicked: webdavClient.currentPath = webdavClient.currentPath + "../"
+            onClicked: webdavClient.cdUp()
         }
 
         ToolIcon {

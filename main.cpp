@@ -6,8 +6,11 @@
 #include <QtDeclarative>
 #include "qmlapplicationviewer.h"
 
+#include "abstracttreeitem.h"
+#include "abstracttreemodel.h"
 #include "webdavfileinfo.h"
 #include "webdavclient.h"
+
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
@@ -15,6 +18,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QScopedPointer<QmlApplicationViewer> viewer(QmlApplicationViewer::create());
 
     qmlRegisterType<QWebdavUrlInfo>("MeeDav", 1, 0, "WebdavUrlInfo");
+    qmlRegisterType<AbstractTreeItem>("MeeDav", 1, 0, "AbstractTreeItem");
 
     WebdavClient client;
 

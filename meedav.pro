@@ -36,6 +36,7 @@ SOURCES += main.cpp \
     webdavclient.cpp
 
 include(qwebdav/qwebdav.pri)
+include(abstracttreemodel/abstracttreemodel.pri)
 
 # Please do not modify the following two lines. Required for deployment.
 include(qmlapplicationviewer/qmlapplicationviewer.pri)

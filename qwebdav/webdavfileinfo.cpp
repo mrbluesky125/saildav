@@ -26,33 +26,14 @@
 
 #include "webdavfileinfo.h"
 
-template<typename ElementType>
-QWebdavUrlInfo* listObject(QDeclarativeListProperty<ElementType>* list)
-{
-    return qobject_cast<QWebdavUrlInfo*>(list->object);
-}
 
-QWebdavUrlInfo::QWebdavUrlInfo(QObject* parent) : QObject(parent)
+QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : AbstractTreeItem(parent)
 {
 }
 
 QWebdavUrlInfo::~QWebdavUrlInfo()
 {
-    qDeleteAll(m_items);
-}
 
-QWebdavUrlInfo::QWebdavUrlInfo(const QDomElement& dom, QObject* parent) : QObject(parent)
-{
-    QDomElement href = dom.namedItem( "href" ).toElement();
-
-    m_node = dom.cloneNode();
-
-    if ( !href.isNull() )
-    {
-        QString urlStr = QUrl::fromPercentEncoding(href.text().toUtf8());
-        QDomNodeList propstats = dom.elementsByTagName( "propstat" );
-        davParsePropstats( urlStr, propstats );
-    }
 }
 
 int QWebdavUrlInfo::codeFromResponse( const QString& response )
@@ -333,6 +314,21 @@ void QWebdavUrlInfo::setMimeType(const QString & mime)
     emit mimeTypeChanged(m_mimeType);
 }
 
+void QWebdavUrlInfo::setProgress(qreal progress)
+{
+    if(qFuzzyCompare(m_progress,progress)) return;
+
+    m_progress = progress;
+    emit progressChanged(progress);
+}
+
+void QWebdavUrlInfo::setBusy(bool busy)
+{
+    if(m_busy == busy) return;
+
+    m_busy = busy;
+    emit busyChanged(busy);
+}
 
 QDateTime QWebdavUrlInfo::createdAt() const
 {
@@ -364,6 +360,16 @@ QString QWebdavUrlInfo::mimeType() const
     return m_mimeType;
 }
 
+qreal QWebdavUrlInfo::progress() const
+{
+    return m_progress;
+}
+
+bool QWebdavUrlInfo::isBusy() const
+{
+    return m_busy;
+}
+
 QDomElement QWebdavUrlInfo::propElement() const
 {
     return m_node.toElement();
@@ -374,30 +380,50 @@ const QWebdav::PropValues& QWebdavUrlInfo::properties() const
     return m_properties;
 }
 
-QDeclarativeListProperty<QWebdavUrlInfo> QWebdavUrlInfo::items()
+void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
 {
-    return QDeclarativeListProperty<QWebdavUrlInfo>(this, 0, &QWebdavUrlInfo::append, &QWebdavUrlInfo::count, &QWebdavUrlInfo::at);
+    //clear childs
+    removeChildren(0, childCount());
+
+    QDomDocument multiResponse;
+    multiResponse.setContent(xmlData, true);
+
+    for(QDomNode n = multiResponse.documentElement().firstChild(); !n.isNull(); n = n.nextSibling())
+    {
+        QDomElement thisResponse = n.toElement();
+
+        if(thisResponse.isNull())
+            continue;
+
+        //this response belongs to the item itself
+        if(thisResponse.namedItem("href").toElement().text().toUtf8() == name()) {
+            setResponse(thisResponse);
+            continue;
+        }
+
+        QScopedPointer<QWebdavUrlInfo> info(new QWebdavUrlInfo());
+        info->setResponse(thisResponse);
+
+        qDebug() << "DEBUG" << info->name() << info->entitytag() << info->mimeType() << info->createdAt();
+
+        if (!info->isValid())
+            continue;
+
+        addChild(info.take());
+    }
 }
 
-void QWebdavUrlInfo::append(QDeclarativeListProperty<QWebdavUrlInfo> *list, QWebdavUrlInfo *item)
+void QWebdavUrlInfo::setResponse(const QDomElement& dom)
 {
-    if(listObject(list) == 0) return;
+    QDomElement href = dom.namedItem( "href" ).toElement();
+    m_node = dom.cloneNode();
 
-    listObject(list)->m_items.append(item);
-}
-
-int QWebdavUrlInfo::count(QDeclarativeListProperty<QWebdavUrlInfo> *list)
-{
-    if(listObject(list) == 0) return 0;
-
-    return listObject(list)->m_items.count();
-}
-
-QWebdavUrlInfo * QWebdavUrlInfo::at(QDeclarativeListProperty<QWebdavUrlInfo> *list, int index)
-{
-    if(listObject(list) == 0) return 0;
-
-    return listObject(list)->m_items.at(index);
+    if ( !href.isNull() )
+    {
+        QString urlStr = QUrl::fromPercentEncoding(href.text().toUtf8());
+        QDomNodeList propstats = dom.elementsByTagName( "propstat" );
+        davParsePropstats( urlStr, propstats );
+    }
 }
 
 void QWebdavUrlInfo::finished()
@@ -417,38 +443,22 @@ void QWebdavUrlInfo::finished()
         return;
     }
 
-    qDeleteAll(m_items);
-    m_items.clear();
-    emit itemsChanged(items());
-
-    QDomDocument multiResponse;
-    multiResponse.setContent(data, true);
-
-    for(QDomNode n = multiResponse.documentElement().firstChild(); !n.isNull(); n = n.nextSibling())
-    {
-        QDomElement thisResponse = n.toElement();
-
-        if (thisResponse.isNull())
-            continue;
-
-        QScopedPointer<QWebdavUrlInfo> info(new QWebdavUrlInfo(thisResponse));
-
-        qDebug() << "DEBUG" << info->name() << info->entitytag() << info->mimeType() << info->createdAt();
-
-        if (!info->isValid())
-            continue;
-
-        m_items << info.take();
-    }
-    emit itemsChanged(items());
+    //most likely a entry listing
+    //if(reply->header(QNetworkRequest::ContentTypeHeader).toString() == "text/xml") {
+        setMultiResponse(data);
+    //}
+    setBusy(false);
 }
 
 void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)
 {
     qDebug() << "QWebdavUrlInfo | Network error occured. Error code:" << code;
+    setBusy(false);
 }
 
 void QWebdavUrlInfo::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
+    qreal progress = (qreal)bytesReceived/(qreal)bytesTotal;
+    setProgress(progress > 0 ? progress : bytesTotal);
     qDebug() << "QWebdavUrlInfo | Download progress." << bytesReceived << "Bytes from" << bytesTotal << "received.";
 }

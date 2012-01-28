@@ -7,7 +7,7 @@ WebdavClient::WebdavClient(QObject *parent) : QObject(parent)
   ,m_password("")
 {
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
-    m_currentItem = m_rootItem = new QWebdavUrlInfo(this);
+    m_currentItem = m_rootItem = new QWebdavUrlInfo();
 }
 
 QString WebdavClient::baseUrl() const
@@ -66,33 +66,14 @@ void WebdavClient::setCurrentPath(const QString& currentPath)
     refresh();
 }
 
-bool WebdavClient::busy() const
-{
-    return true;
-}
-
-void WebdavClient::refresh()
-{
-    qDebug() << "WebdavClient | List url:" << baseUrl() + currentPath();
-    QNetworkReply* reply = m_webdavManager.list(baseUrl() + currentPath());
-    connect(reply, SIGNAL(finished()), m_rootItem, SLOT(finished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), m_rootItem, SLOT(error(QNetworkReply::NetworkError)));
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), m_rootItem, SLOT(downloadProgress(qint64,qint64)));
-
-    //client handling - maybe removed
-    connect(reply, SIGNAL(finished()), this, SLOT(replyFinished()));
-}
-
 void WebdavClient::replyFinished()
 {
-    emit busyChanged(false);
+
 }
 
 void WebdavClient::replyError(QNetworkReply::NetworkError error)
 {
     qDebug() << "WebdavClient | NetworkError:" << error;
-
-    emit busyChanged(false);
 }
 
 void WebdavClient::authenticationRequired(QNetworkReply* reply, QAuthenticator* authenticator)
@@ -107,3 +88,29 @@ QWebdavUrlInfo* WebdavClient::currentItem()
 {
     return m_currentItem;
 }
+
+void WebdavClient::cdUp()
+{
+    QString currentPath = this->currentPath();
+    int index = currentPath.lastIndexOf('/');
+
+    if(index == 0) return;
+
+    if(index == (currentPath.size()-1))
+        index = currentPath.lastIndexOf('/',-2);
+
+    currentPath.truncate(index+1);
+    setCurrentPath(currentPath);
+}
+
+void WebdavClient::refresh()
+{
+    qDebug() << "WebdavClient | List url:" << baseUrl() + currentPath();
+    QNetworkReply* reply = m_webdavManager.list(baseUrl() + currentPath());
+    m_currentItem->setName(currentPath());
+    connect(reply, SIGNAL(finished()), m_currentItem, SLOT(finished()));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), m_currentItem, SLOT(error(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), m_currentItem, SLOT(downloadProgress(qint64,qint64)));
+
+}
+

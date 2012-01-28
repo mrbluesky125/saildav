@@ -16,7 +16,6 @@ class WebdavClient : public QObject
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged)
     Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
     Q_PROPERTY(QString currentPath READ currentPath WRITE setCurrentPath NOTIFY currentPathChanged)
-    Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QWebdavUrlInfo* currentItem READ currentItem NOTIFY currentItemChanged)
 
     QWebdav m_webdavManager;
@@ -43,9 +42,8 @@ public:
 
     QWebdavUrlInfo* currentItem();
 
-    bool busy() const;
-
 public slots:
+    void cdUp();
     void refresh();
 
 protected slots:
@@ -58,7 +56,6 @@ signals:
     void userNameChanged(QString);
     void passwordChanged(QString);
     void currentPathChanged(QString);
-    void busyChanged(bool);
     void currentItemChanged(QWebdavUrlInfo*);
 
 
