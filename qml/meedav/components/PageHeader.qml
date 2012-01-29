@@ -10,7 +10,7 @@ Rectangle {
     property alias busy: busyIndicator.running
 
     height: 70
-    color: "#E0E1E2"
+    color: "orange"
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right

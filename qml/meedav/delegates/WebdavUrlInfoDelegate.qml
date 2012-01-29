@@ -20,10 +20,33 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: "lightsteelblue";
+        color: "darkgray";
         opacity: 0.0
 
         Behavior on opacity { NumberAnimation {} }
+    }
+
+    Rectangle {
+        id: progressBackground
+
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        width: parent.width*progress
+
+        color: "#32c81e"
+        opacity: busy ? 0.5 : 0.0
+
+        Behavior on width { NumberAnimation {} }
+    }
+
+    BusyIndicator {
+        id: busyIndicator
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: parent.right
+        anchors.rightMargin: 12
+        opacity: busy ? 1.0 : 0.0
+        running: busy
     }
 
     Row {
@@ -41,12 +64,17 @@ Item {
         Column {
             anchors.verticalCenter: parent.verticalCenter
             anchors.margins: 6
-            spacing: 10
+            spacing: 3
 
             Label {
                 text: displayName
                 font.pixelSize: 32
                 font.family: "Nokia Pure Bold"
+            }
+
+            Label {
+                text: mimeType
+                font.pixelSize: 16
             }
 
             Label {
@@ -62,10 +90,11 @@ Item {
         onReleased: background.opacity = 0.0;
         onPositionChanged: background.opacity = 0.0;
         onClicked: {
-            if(dir)
-                webdavClient.cd(name);
+            if(busy) return;
+            if(dir) webdavClient.cd(name);
         }
         onPressAndHold: {
+            if(busy) return;
             itemMenu.item = root.ListView.view.model[index]
             itemMenu.open();
         }
