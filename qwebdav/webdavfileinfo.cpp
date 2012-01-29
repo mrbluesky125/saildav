@@ -571,22 +571,13 @@ void QWebdavUrlInfo::finished()
 
     QByteArray data = reply->readAll();
     if(data.isEmpty()) {
-        qDebug() << "QWebdavUrlInfo | Reply has no data. Reply is ignored.";
-        return;
+        qDebug() << "QWebdavUrlInfo | Reply has no data.";
     }
 
     if(contentType.contains("xml"))
         setMultiResponse(data);
     else if(isFile()) {
-        qDebug() << "QWebdavUrlInfo | File download finished.";
-        QFile file(downloadPath() + "/" + displayName());
-        if(file.open(QFile::WriteOnly)) {
-            file.write(data);
-            file.close();
-            qDebug() << "QWebdavUrlInfo | File downloaded to:" << file.fileName();
-        }
-        else
-            qDebug() << "QWebdavUrlInfo | Failed to open file:" << file.fileName();
+        qDebug() << "QWebdavUrlInfo | Download finished. File location:" << downloadPath();
     }
 
     setBusy(false);

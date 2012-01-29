@@ -10,10 +10,8 @@ PageStackWindow {
 
     initialPage: mainPage
 
-    property variant createFolderPage: CreateFolderPage { }
     property variant accountPage: AccountPage {}
     property variant mainPage: MainPage {}
-
 
     ToolBarLayout {
         id: commonTools
@@ -57,12 +55,12 @@ PageStackWindow {
         MenuLayout {
             MenuItem {
                 text: qsTr("New Folder")
-                onClicked: appWindow.pageStack.push(appWindow.createFolderPage, {currentFolder: webdavClient.currentItem.name});
+                onClicked: appWindow.pageStack.push(Qt.resolvedUrl("CreateFolderPage.qml"), {item: webdavClient.currentItem});
             }
             MenuItem {
                 text: qsTr("Upload")
                 enabled: false
-                onClicked: appWindow.pageStack.push(appWindow.createFolderPage, {currentFolder: webdavClient.currentItem.name});
+                onClicked: ;
             }
             MenuItem {
                 text: qsTr("Account")
@@ -99,8 +97,8 @@ PageStackWindow {
             }
             MenuItem {
                 text: qsTr("Rename")
-                enabled: false
-                onClicked: ;
+                //enabled: false
+                onClicked: appWindow.pageStack.push(Qt.resolvedUrl("RenamePage.qml"), {item: itemMenu.item});
             }
             MenuItem {
                 text: qsTr("Delete")

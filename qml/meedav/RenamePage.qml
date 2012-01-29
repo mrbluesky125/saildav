@@ -16,7 +16,7 @@ Page {
         spacing: 12
 
         Label {
-            text: "Create a new folder in"
+            text: qsTr("Current name")
         }
 
         TextField {
@@ -24,27 +24,28 @@ Page {
             anchors.left: parent.left
             anchors.right: parent.right
             enabled: false
-            text: item.name
+            text: item.displayName
         }
 
         Label {
-            text: "New folder"
+            text: qsTr("Rename to")
         }
 
         TextField {
             id: inputField
             anchors.left: parent.left
             anchors.right: parent.right
-            placeholderText: "Folder name"
+            text: item.displayName
+            placeholderText: qsTr("new name")
         }
 
         Button {
             anchors.left: parent.left
             anchors.right: parent.right
             enabled: inputField.text != ""
-            text: "Create folder"
+            text: qsTr("Rename")
             onClicked: {
-                webdavClient.mkdir(currentField.text + inputField.text + "/");
+                webdavClient.rename(item.name, inputField.text);
                 pageStack.pop();
             }
         }

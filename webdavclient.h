@@ -44,10 +44,12 @@ public:
     void setCurrentItem(QWebdavUrlInfo*);
 
 protected:
+    void connectReply(QNetworkReply*);
     QWebdavUrlInfo* createCachePath(const QString&);
     QWebdavUrlInfo* createCacheDir(QWebdavUrlInfo*, const QString&);
 
 public slots:
+    void rename(const QString& path, const QString& to);
     void remove(const QString& path);
     void upload(const QString& path, const QString& from);
     void mkdir(const QString& path);

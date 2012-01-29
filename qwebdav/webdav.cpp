@@ -34,13 +34,23 @@ QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
 
 QWebdav::~QWebdav()
 {
+
+}
+
+void QWebdav::replyReadyRead()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
+    QIODevice* dataIO = m_inDataDevices.value(reply, 0);
+    if(dataIO == 0) return;
+    dataIO->write(reply->readAll());
 }
 
 void QWebdav::replyFinished(QNetworkReply* reply)
 {
     delete m_outDataDevices.value(reply, 0);
+    delete m_inDataDevices.value(reply, 0);
     m_outDataDevices.remove(reply);
-    reply->deleteLater();
+    m_inDataDevices.remove(reply);
 }
 
 QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
@@ -104,6 +114,17 @@ QNetworkReply* QWebdav::get(const QString& path)
     req.setUrl(QUrl(path));
 
     return QNetworkAccessManager::get(req);
+}
+
+QNetworkReply* QWebdav::get(const QString& path, QIODevice* data)
+{
+    QNetworkRequest req;
+    req.setUrl(QUrl(path));
+
+    QNetworkReply* reply = QNetworkAccessManager::get(req);
+    m_inDataDevices.insert(reply, data);
+    connect(reply, SIGNAL(readyRead()), this, SLOT(replyReadyRead()));
+    return reply;
 }
 
 QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)

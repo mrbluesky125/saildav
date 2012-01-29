@@ -43,6 +43,7 @@ class QWebdav : public QNetworkAccessManager
 
 private:
     QMap<QNetworkReply*, QIODevice*> m_outDataDevices;
+    QMap<QNetworkReply*, QIODevice*> m_inDataDevices;
 
 public:
     QWebdav(QObject* parent = 0);
@@ -54,6 +55,7 @@ public:
     QNetworkReply* list(const QString& path);
     QNetworkReply* search(const QString& path, const QString& query);
     QNetworkReply* get(const QString& path);
+    QNetworkReply* get(const QString& path, QIODevice* data);
     QNetworkReply* put(const QString& path, QIODevice* data);
     QNetworkReply* put(const QString& path, const QByteArray& data );
 
@@ -70,6 +72,7 @@ public:
 
     /* TODO lock, unlock */
 protected slots:
+    void replyReadyRead();
     void replyFinished(QNetworkReply*);
 
 protected:

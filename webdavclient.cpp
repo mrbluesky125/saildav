@@ -67,7 +67,7 @@ void WebdavClient::setHomePath(const QString& homePath)
 
 void WebdavClient::replyFinished()
 {
-
+    refresh();
 }
 
 void WebdavClient::replyError(QNetworkReply::NetworkError error)
@@ -94,6 +94,13 @@ void WebdavClient::setCurrentItem(QWebdavUrlInfo* currentItem)
 
     m_currentItem = currentItem;
     emit currentItemChanged(m_currentItem);
+}
+
+void WebdavClient::connectReply(QNetworkReply* reply)
+{
+    if(reply == 0) return;
+    connect(reply, SIGNAL(finished()), this, SLOT(replyFinished()));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
 }
 
 QWebdavUrlInfo* WebdavClient::createCachePath(const QString& path)
@@ -145,10 +152,32 @@ QWebdavUrlInfo* WebdavClient::createCacheDir(QWebdavUrlInfo* parentItem, const Q
     return urlInfoItem;
 }
 
+void WebdavClient::rename(const QString& path, const QString& to)
+{
+    qDebug() << "WebdavClient | move:" << path << "to:" << to;
+
+    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
+    if(currentItem == 0) {
+        qDebug() << "WebdavClient | Cannot rename entry, not found:" << currentItem->name();
+        return;
+    }
+
+    //map relative 'to' path to the folder of the 'from' item
+    QString pathTo = to;
+    if(!to.startsWith('/'))
+        pathTo = static_cast<QWebdavUrlInfo*>(currentItem->parentItem())->name() + to;
+
+    QNetworkReply* reply = m_webdavManager.move(baseUrl() + path, baseUrl() + pathTo);
+    currentItem->connectReply(reply);
+    this->connectReply(reply);
+}
+
 void WebdavClient::remove(const QString& path)
 {
-    //I assume the path is already in the cache, if not, nothing happens
-    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_rootItem->findFirst(path, "name"));
+    qDebug() << "WebdavClient | remove:" << path;
+
+    //I assume the path is a child of the current item to prevent possible deletion of the parent item
+    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
     if(currentItem == 0) {
         qDebug() << "WebdavClient | Cannot remove entry, not found:" << currentItem->name();
         return;
@@ -156,6 +185,7 @@ void WebdavClient::remove(const QString& path)
 
     QNetworkReply* reply = m_webdavManager.remove(baseUrl() + path);
     currentItem->connectReply(reply);
+    this->connectReply(reply);
 }
 
 void WebdavClient::upload(const QString& path, const QString& from)
@@ -165,6 +195,7 @@ void WebdavClient::upload(const QString& path, const QString& from)
 
 void WebdavClient::mkdir(const QString& path)
 {
+    qDebug() << "WebdavClient | mkdir:" << path;
     QWebdavUrlInfo* currentItem = createCachePath(path);
     if(currentItem == m_rootItem) {
         qDebug() << "WebdavClient | Failed to create new folder:" << path;
@@ -177,15 +208,25 @@ void WebdavClient::mkdir(const QString& path)
 
 void WebdavClient::download(const QString& path)
 {
-    QWebdavUrlInfo* currentItem = createCachePath(path);
-    if(currentItem == m_rootItem) {
-        qDebug() << "WebdavClient | Failed to download file:" << path;
+    qDebug() << "WebdavClient | get:" << path;
+
+    //I assume that the file is visible and in the cache
+    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
+    if(currentItem == 0) {
+        qDebug() << "WebdavClient | Failed to download file, not found:" << currentItem->name();
         return;
     }
 
-    currentItem->setDownloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
+    QString localPath = QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/" + currentItem->displayName();
+    QScopedPointer<QFile> file(new QFile(localPath));
+    if(!file->open(QFile::WriteOnly)) {
+        qDebug() << "WebdavClient | Unable to write to local file:" << localPath;
+        return;
+    }
 
-    QNetworkReply* reply = m_webdavManager.get(baseUrl() + path);
+    currentItem->setDownloadPath(localPath);
+
+    QNetworkReply* reply = m_webdavManager.get(baseUrl() + path, file.take());
     currentItem->connectReply(reply);
 }
 
