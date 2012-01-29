@@ -1,7 +1,7 @@
-meedav (0.0.2) unstable; urgency=low
+meedav (0.0.3) unstable; urgency=low
 
-  * 'Create folder' added.
+  * 'Rename' added.
 
-  * 'Delete' added.
+  * Download improved.
 
- -- Timo Zimmermann <meedav@timozimmermann.de>  Thu, 29 Jan 2012 15:20:47 +0000
+ -- Timo Zimmermann <meedav@timozimmermann.de>  Thu, 29 Jan 2012 18:20:47 +0000
