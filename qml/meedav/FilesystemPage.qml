@@ -18,7 +18,7 @@ Page {
 
         FolderListModel {
             id: folderModel
-            nameFilters: ["*.qml"]
+            nameFilters: ["*.*"]
         }
 
         Component {

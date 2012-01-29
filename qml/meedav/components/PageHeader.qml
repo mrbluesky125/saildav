@@ -4,12 +4,13 @@ import com.nokia.meego 1.0
 Rectangle {
     id: root
 
+    property bool iconEnabled: false
     property alias text: appTitle.text
     property alias iconSource: appIcon.source
     property alias busy: busyIndicator.running
 
     height: 70
-    color: "orange"
+    color: "#E0E1E2"
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
@@ -19,8 +20,8 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
         anchors.leftMargin: 12
-        height: 56
-        width: 56
+        height: iconEnabled ? 56 : 0
+        width: height
         smooth: true
         source: "../images/meedav.svg"
     }
@@ -31,6 +32,7 @@ Rectangle {
         anchors.left: appIcon.right
         anchors.leftMargin: 12
         font.pixelSize: 30
+        color: "white"
     }
 
     BusyIndicator {

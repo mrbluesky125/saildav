@@ -16,7 +16,6 @@ class WebdavClient : public QObject
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged)
     Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
     Q_PROPERTY(QString homePath READ homePath WRITE setHomePath NOTIFY homePathChanged)
-    Q_PROPERTY(QString downloadPath READ downloadPath WRITE setDownloadPath NOTIFY downloadPathChanged)
     Q_PROPERTY(QWebdavUrlInfo* currentItem READ currentItem NOTIFY currentItemChanged)
 
     QWebdav m_webdavManager;
@@ -24,7 +23,6 @@ class WebdavClient : public QObject
     QString m_userName;
     QString m_password;
     QString m_homePath;
-    QString m_downloadPath;
 
     QWebdavUrlInfo* m_rootItem;
     QWebdavUrlInfo* m_currentItem;
@@ -36,13 +34,11 @@ public:
     QString userName() const;
     QString password() const;
     QString homePath() const;
-    QString downloadPath() const;
 
     void setBaseUrl(const QString&);
     void setUserName(const QString&);
     void setPassword(const QString&);
     void setHomePath(const QString&);
-    void setDownloadPath(const QString&);
 
     QWebdavUrlInfo* currentItem();
     void setCurrentItem(QWebdavUrlInfo*);
@@ -52,6 +48,9 @@ protected:
     QWebdavUrlInfo* createCacheDir(QWebdavUrlInfo*, const QString&);
 
 public slots:
+    void remove(const QString& path);
+    void upload(const QString& path, const QString& from);
+    void mkdir(const QString& path);
     void download(const QString& path);
     void cd(const QString& dir);
     void refresh();
@@ -66,7 +65,6 @@ signals:
     void userNameChanged(QString);
     void passwordChanged(QString);
     void homePathChanged(QString);
-    void downloadPathChanged(QString);
     void currentItemChanged(QWebdavUrlInfo*);
 
 

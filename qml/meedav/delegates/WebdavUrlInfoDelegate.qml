@@ -3,9 +3,19 @@ import com.nokia.meego 1.0
 
 Item {
     id: root
-    anchors.margins: 6
     width: parent.width
     height: 100
+
+    function sizeString() {
+        if(size > 1024*1024*1024)
+            return Math.floor(size/(1024*1024*1024)) + " Gb"
+        else if(size > 1024*1024)
+            return Math.floor(size/(1024*1024)) + " Mb"
+        else if(size > 1024)
+            return Math.floor(size/1024) + " Kb"
+        else
+            return size + " Bytes"
+    }
 
     Rectangle {
         id: background
@@ -18,17 +28,31 @@ Item {
 
     Row {
         anchors.fill: parent
+        anchors.margins: 6
         spacing: 10
         Image {
+            id: logo
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
             width: parent.height
-            source: dir ? "image://theme/icon-m-common-directory" : ""
+            source: dir ? "image://theme/icon-m-common-directory" : "image://theme/icon-l-sharing-document"
         }
 
-        Label {
+        Column {
             anchors.verticalCenter: parent.verticalCenter
-            text: displayName
+            anchors.margins: 6
+            spacing: 10
+
+            Label {
+                text: displayName
+                font.pixelSize: 32
+                font.family: "Nokia Pure Bold"
+            }
+
+            Label {
+                text: lastModified + (file ? (" - " + sizeString()) : "")
+                font.pixelSize: 16
+            }
         }
     }
 
@@ -40,8 +64,10 @@ Item {
         onClicked: {
             if(dir)
                 webdavClient.cd(name);
-            else if(file)
-                webdavClient.download(name);
+        }
+        onPressAndHold: {
+            itemMenu.item = root.ListView.view.model[index]
+            itemMenu.open();
         }
     }
 }

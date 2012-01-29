@@ -6,6 +6,12 @@ import "delegates"
 Page {
     tools: commonTools
 
+    Rectangle {
+        id: background
+        anchors.fill: parent
+        color: "white"
+    }
+
     PageHeader {
         id: appTitleRect
         text: webdavClient.currentItem.name == webdavClient.homePath ? "Home" : webdavClient.currentItem.displayName
@@ -13,6 +19,7 @@ Page {
     }
 
     ListView {
+        id: itemView
         anchors.top: appTitleRect.bottom
         anchors.left: parent.left
         anchors.right: parent.right

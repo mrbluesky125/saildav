@@ -27,13 +27,53 @@
 #include "webdavfileinfo.h"
 
 QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : AbstractTreeItem(parent)
+  ,m_dir(false)
+  ,m_file(false)
+  ,m_group()
+  ,m_lastModified()
+  ,m_name()
+  ,m_owner()
+  ,m_permissions(755)
+  ,m_readable(true)
+  ,m_size(0)
+  ,m_symLink(false)
+  ,m_writable(true)
+  ,m_createdAt()
+  ,m_displayName()
+  ,m_source()
+  ,m_contentLanguage()
+  ,m_entityTag()
+  ,m_mimeType()
+  ,m_downloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+  ,m_progress(-1)
+  ,m_busy(false)
 {
 
 }
 
 QWebdavUrlInfo::QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent) : AbstractTreeItem(parent)
+  ,m_dir(false)
+  ,m_file(false)
+  ,m_group()
+  ,m_lastModified()
+  ,m_name(name)
+  ,m_owner()
+  ,m_permissions(755)
+  ,m_readable(true)
+  ,m_size(0)
+  ,m_symLink(false)
+  ,m_writable(true)
+  ,m_createdAt()
+  ,m_displayName()
+  ,m_source()
+  ,m_contentLanguage()
+  ,m_entityTag()
+  ,m_mimeType()
+  ,m_downloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+  ,m_progress(-1)
+  ,m_busy(false)
 {
-    QUrlInfo::setName(name);
+
 }
 
 QWebdavUrlInfo::~QWebdavUrlInfo()
@@ -51,29 +91,30 @@ int QWebdavUrlInfo::codeFromResponse( const QString& response )
 QDateTime QWebdavUrlInfo::parseDateTime( const QString& input, const QString& type )
 {
     QDateTime datetime;
+    QLocale usLocal(QLocale::English, QLocale::UnitedStates);
 
     if ( type == "dateTime.tz" )
-        datetime =  QDateTime::fromString( input, Qt::ISODate );
+        datetime =  QDateTime::fromString(input, Qt::ISODate );
     else if ( type == "dateTime.rfc1123" )
-        datetime = QDateTime::fromString( input );
+        datetime = usLocal.toDateTime( input );
 
     if (datetime.isValid())
         return datetime;
 
-    datetime = QDateTime::fromString(input.left(25), "ddd, dd MMM yyyy hh:mm:ss");
+    datetime = usLocal.toDateTime(input.left(25), "ddd, dd MMM yyyy hh:mm:ss");
     if (datetime.isValid())
         return datetime;
-    datetime = QDateTime::fromString(input.left(19), "yyyy-MM-ddThh:mm:ss");
+    datetime = usLocal.toDateTime(input.left(19), "yyyy-MM-ddThh:mm:ss");
     if (datetime.isValid())
         return datetime;
-    datetime = QDateTime::fromString(input.mid(5, 20) , "d MMM yyyy hh:mm:ss");
+    datetime = usLocal.toDateTime(input.mid(5, 20) , "d MMM yyyy hh:mm:ss");
     if (datetime.isValid())
         return datetime;
     QDate date;
     QTime time;
 
-    date = QDate::fromString(input.mid(5, 11) , "d MMM yyyy");
-    time = QTime::fromString(input.mid(17, 8) , "hh:mm:ss");
+    date = usLocal.toDate(input.mid(5, 11) , "d MMM yyyy");
+    time = usLocal.toTime(input.mid(17, 8) , "hh:mm:ss");
     datetime = QDateTime(date, time);
 
     if(!datetime.isValid())
@@ -125,7 +166,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
             }
 
             if ( property.tagName() == "creationdate" )
-                setCreatedAt(parseDateTime( property.text(), property.attribute("dt") ));
+                setCreatedAt(parseDateTime( property.text(), property.attribute("dt") ).toString("dd.MM.yyyy hh:mm"));
             else if ( property.tagName() == "getcontentlength" )
                 setSize(property.text().toULong());
             else if ( property.tagName() == "displayname" )
@@ -155,7 +196,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
                     foundExecutable = true;
             }
             else if ( property.tagName() == "getlastmodified" )
-                setLastModified(parseDateTime( property.text(), property.attribute("dt") ));
+                setLastModified(parseDateTime( property.text(), property.attribute("dt") ).toString("dd.MM.yyyy hh:mm"));
             else if ( property.tagName() == "getetag" )
                 setEntitytag(property.text());
             else if ( property.tagName() == "resourcetype" )
@@ -185,41 +226,41 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
 
 void QWebdavUrlInfo::setDir(bool b)
 {
-    if(isDir() == b) return;
+    if(m_dir == b) return;
 
-    QUrlInfo::setDir(b);
+    m_dir = b;
     emit dirChanged(b);
 }
 
 void QWebdavUrlInfo::setFile(bool b)
 {
-    if(isFile() == b) return;
+    if(m_file == b) return;
 
-    QUrlInfo::setFile(b);
+    m_file = b;
     emit fileChanged(b);
 }
 
 void QWebdavUrlInfo::setGroup(const QString& s)
 {
-    if(group() == s) return;
+    if(m_group == s) return;
 
-    QUrlInfo::setGroup(s);
+    m_group =s;
     emit groupChanged(s);
 }
 
-void QWebdavUrlInfo::setLastModified(const QDateTime& dt)
+void QWebdavUrlInfo::setLastModified(const QString& dt)
 {
-    if(lastModified() == dt) return;
+    if(m_lastModified == dt) return;
 
-    QUrlInfo::setLastModified(dt);
+    m_lastModified = dt;
     emit lastModifiedChanged(dt);
 }
 
 void QWebdavUrlInfo::setName(const QString& name)
 {
-    if(QUrlInfo::name() == name) return;
+    if(m_name == name) return;
 
-    QUrlInfo::setName(name);
+    m_name = name;
     emit nameChanged(name);
 
     if(name.isEmpty()) return;
@@ -228,53 +269,53 @@ void QWebdavUrlInfo::setName(const QString& name)
 
 void QWebdavUrlInfo::setOwner(const QString& s)
 {
-    if(owner() == s) return;
+    if(m_owner == s) return;
 
-    QUrlInfo::setOwner(s);
+    m_owner = s;
     emit ownerChanged(s);
 }
 
 void QWebdavUrlInfo::setPermissions(int p)
 {
-    if(permissions() == p) return;
+    if(m_permissions == p) return;
 
-    QUrlInfo::setPermissions(p);
+    m_permissions = p;
     emit permissionsChanged(p);
 }
 
 void QWebdavUrlInfo::setReadable(bool b)
 {
-    if(isReadable() == b) return;
+    if(m_readable == b) return;
 
-    QUrlInfo::setReadable(b);
+    m_readable = b;
     emit readableChanged(b);
 }
 
 void QWebdavUrlInfo::setSize(qint64 size)
 {
-    if(QUrlInfo::size() == size) return;
+    if(m_size == size) return;
 
-    QUrlInfo::setSize(size);
+    m_size = size;
     emit sizeChanged(size);
 }
 
 void QWebdavUrlInfo::setSymLink(bool b)
 {
-    if(isSymLink() == b) return;
+    if(m_symLink == b) return;
 
-    QUrlInfo::setSymLink(b);
+    m_symLink = b;
     emit symLinkChanged(b);
 }
 
 void QWebdavUrlInfo::setWritable(bool b)
 {
-    if(isWritable() == b) return;
+    if(m_writable == b) return;
 
-    QUrlInfo::setWritable(b);
+    m_writable = b;
     emit writableChanged(b);
 }
 
-void QWebdavUrlInfo::setCreatedAt(const QDateTime & date)
+void QWebdavUrlInfo::setCreatedAt(const QString & date)
 {
     if(m_createdAt == date) return;
 
@@ -338,7 +379,70 @@ void QWebdavUrlInfo::setBusy(bool busy)
     emit busyChanged(busy);
 }
 
-QDateTime QWebdavUrlInfo::createdAt() const
+void QWebdavUrlInfo::setDownloadPath(const QString& downloadPath)
+{
+    if(m_downloadPath == downloadPath) return;
+
+    m_downloadPath = downloadPath;
+    emit downloadPathChanged(m_downloadPath);
+}
+
+bool QWebdavUrlInfo::isDir() const
+{
+    return m_dir;
+}
+
+bool QWebdavUrlInfo::isFile() const
+{
+    return m_file;
+}
+
+QString QWebdavUrlInfo::group() const
+{
+    return m_group;
+}
+
+QString QWebdavUrlInfo::lastModified() const
+{
+    return m_lastModified;
+}
+
+QString QWebdavUrlInfo::name() const
+{
+    return m_name;
+}
+
+QString QWebdavUrlInfo::owner() const
+{
+    return m_owner;
+}
+
+int QWebdavUrlInfo::permissions() const
+{
+    return m_permissions;
+}
+
+bool QWebdavUrlInfo::isReadable() const
+{
+    return m_readable;
+}
+
+qint64 QWebdavUrlInfo::size() const
+{
+    return m_size;
+}
+
+bool QWebdavUrlInfo::isSymLink() const
+{
+    return m_symLink;
+}
+
+bool QWebdavUrlInfo::isWritable() const
+{
+    return m_writable;
+}
+
+QString QWebdavUrlInfo::createdAt() const
 {
     return m_createdAt;
 }
@@ -376,6 +480,11 @@ qreal QWebdavUrlInfo::progress() const
 bool QWebdavUrlInfo::isBusy() const
 {
     return m_busy;
+}
+
+QString QWebdavUrlInfo::downloadPath() const
+{
+    return m_downloadPath;
 }
 
 QDomElement QWebdavUrlInfo::propElement() const
@@ -440,6 +549,14 @@ void QWebdavUrlInfo::setResponse(const QDomElement& dom)
     }
 }
 
+void QWebdavUrlInfo::connectReply(QNetworkReply* reply)
+{
+    if(reply == 0) return;
+    connect(reply, SIGNAL(finished()), this, SLOT(finished()));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
+}
+
 void QWebdavUrlInfo::finished()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
@@ -462,10 +579,14 @@ void QWebdavUrlInfo::finished()
         setMultiResponse(data);
     else if(isFile()) {
         qDebug() << "QWebdavUrlInfo | File download finished.";
-        QFile file(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/" + displayName());
-        file.open(QFile::WriteOnly);
-        file.write(data);
-        file.close();
+        QFile file(downloadPath() + "/" + displayName());
+        if(file.open(QFile::WriteOnly)) {
+            file.write(data);
+            file.close();
+            qDebug() << "QWebdavUrlInfo | File downloaded to:" << file.fileName();
+        }
+        else
+            qDebug() << "QWebdavUrlInfo | Failed to open file:" << file.fileName();
     }
 
     setBusy(false);

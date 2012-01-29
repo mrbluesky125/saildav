@@ -1,5 +1,7 @@
-meedav (0.0.1) unstable; urgency=low
+meedav (0.0.2) unstable; urgency=low
 
-  * Initial Release.
+  * 'Create folder' added.
 
- -- Timo Zimmermann <sipgatesms@timozimmermann.de> Thu, 19 Jan 2012 20:52:47 +0000
+  * 'Delete' added.
+
+ -- Timo Zimmermann <meedav@timozimmermann.de>  Thu, 29 Jan 2012 15:20:47 +0000

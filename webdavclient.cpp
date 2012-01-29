@@ -30,11 +30,6 @@ QString WebdavClient::homePath() const
     return m_homePath;
 }
 
-QString WebdavClient::downloadPath() const
-{
-    return m_downloadPath;
-}
-
 void WebdavClient::setBaseUrl(const QString& baseUrl)
 {
     //if(m_baseUrl.toString() == baseUrl) return;
@@ -68,14 +63,6 @@ void WebdavClient::setHomePath(const QString& homePath)
 
     m_homePath = homePath;
     emit homePathChanged(m_homePath);
-}
-
-void WebdavClient::setDownloadPath(const QString& downloadPath)
-{
-    if(m_downloadPath == downloadPath) return;
-
-    m_downloadPath = downloadPath;
-    emit downloadPathChanged(m_downloadPath);
 }
 
 void WebdavClient::replyFinished()
@@ -150,6 +137,7 @@ QWebdavUrlInfo* WebdavClient::createCacheDir(QWebdavUrlInfo* parentItem, const Q
     //create
     QWebdavUrlInfo* urlInfoItem = new QWebdavUrlInfo();
     urlInfoItem->setName(parentItem->name() + dirName + "/");
+    urlInfoItem->setDir(true);
     parentItem->addChild(urlInfoItem);
 
     qDebug() << "WebdavClient | Create cache directory:" << urlInfoItem->name();
@@ -157,7 +145,35 @@ QWebdavUrlInfo* WebdavClient::createCacheDir(QWebdavUrlInfo* parentItem, const Q
     return urlInfoItem;
 }
 
+void WebdavClient::remove(const QString& path)
+{
+    //I assume the path is already in the cache, if not, nothing happens
+    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_rootItem->findFirst(path, "name"));
+    if(currentItem == 0) {
+        qDebug() << "WebdavClient | Cannot remove entry, not found:" << currentItem->name();
+        return;
+    }
 
+    QNetworkReply* reply = m_webdavManager.remove(baseUrl() + path);
+    currentItem->connectReply(reply);
+}
+
+void WebdavClient::upload(const QString& path, const QString& from)
+{
+
+}
+
+void WebdavClient::mkdir(const QString& path)
+{
+    QWebdavUrlInfo* currentItem = createCachePath(path);
+    if(currentItem == m_rootItem) {
+        qDebug() << "WebdavClient | Failed to create new folder:" << path;
+        return;
+    }
+
+    QNetworkReply* reply = m_webdavManager.mkdir(baseUrl() + path);
+    currentItem->connectReply(reply);
+}
 
 void WebdavClient::download(const QString& path)
 {
@@ -167,10 +183,10 @@ void WebdavClient::download(const QString& path)
         return;
     }
 
+    currentItem->setDownloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
+
     QNetworkReply* reply = m_webdavManager.get(baseUrl() + path);
-    connect(reply, SIGNAL(finished()), currentItem, SLOT(finished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), currentItem, SLOT(error(QNetworkReply::NetworkError)));
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), currentItem, SLOT(downloadProgress(qint64,qint64)));
+    currentItem->connectReply(reply);
 }
 
 void WebdavClient::cd(const QString& dir)
@@ -188,8 +204,6 @@ void WebdavClient::refresh()
 {
     qDebug() << "WebdavClient | List url:" << baseUrl() + m_currentItem->name();
     QNetworkReply* reply = m_webdavManager.list(baseUrl() + m_currentItem->name());
-    connect(reply, SIGNAL(finished()), m_currentItem, SLOT(finished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), m_currentItem, SLOT(error(QNetworkReply::NetworkError)));
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), m_currentItem, SLOT(downloadProgress(qint64,qint64)));
+    m_currentItem->connectReply(reply);
 }
 

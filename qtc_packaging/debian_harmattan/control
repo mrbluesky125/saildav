@@ -1,7 +1,7 @@
 Source: meedav
 Section: user/other
 Priority: optional
-Maintainer: Timo Zimmermann <sipgatesms@timozimmermann.de >
+Maintainer: Timo Zimmermann <meedav@timozimmermann.de >
 Build-Depends: debhelper (>= 5), libqt4-dev
 Standards-Version: 3.7.3
 Homepage: <insert the upstream URL, if relevant>
