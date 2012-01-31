@@ -144,6 +144,7 @@ QWebdavUrlInfo* WebdavClient::createCacheDir(QWebdavUrlInfo* parentItem, const Q
     //create
     QWebdavUrlInfo* urlInfoItem = new QWebdavUrlInfo();
     urlInfoItem->setName(parentItem->name() + dirName + "/");
+    urlInfoItem->setDisplayName(dirName);
     urlInfoItem->setDir(true);
     parentItem->addChild(urlInfoItem);
 
@@ -168,7 +169,7 @@ void WebdavClient::rename(const QString& path, const QString& to)
         pathTo = static_cast<QWebdavUrlInfo*>(currentItem->parentItem())->name() + to;
 
     QNetworkReply* reply = m_webdavManager.move(baseUrl() + path, baseUrl() + pathTo);
-    currentItem->connectReply(reply);
+    currentItem->setReply(reply);
     this->connectReply(reply);
 }
 
@@ -184,13 +185,41 @@ void WebdavClient::remove(const QString& path)
     }
 
     QNetworkReply* reply = m_webdavManager.remove(baseUrl() + path);
-    currentItem->connectReply(reply);
+    currentItem->setReply(reply);
     this->connectReply(reply);
 }
 
 void WebdavClient::upload(const QString& path, const QString& from)
 {
+    qDebug() << "WebdavClient | upload " << from << "to:" << path;
 
+    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
+    if(currentItem == 0) {
+        qDebug() << "WebdavClient | Cannot upload, path not found:" << currentItem->name();
+        return;
+    }
+
+    QScopedPointer<QFile> file( new QFile(QUrl(from).toLocalFile()) );
+    if(!file->open(QFile::ReadOnly)) {
+        qDebug() << "WebdavClient | Failed to open file:" << from;
+        return;
+    }
+
+    QFileInfo toFileInfo = QFileInfo(file->fileName());
+    QString toFilePath = path + toFileInfo.fileName();
+
+    QWebdavUrlInfo* urlInfoItem = new QWebdavUrlInfo();
+    urlInfoItem->setName(toFilePath);
+    urlInfoItem->setDisplayName(toFileInfo.fileName());
+    urlInfoItem->setDir(false);
+    urlInfoItem->setFile(true);
+    urlInfoItem->setSize(toFileInfo.size());
+    urlInfoItem->setLastModified(toFileInfo.lastModified().toString("dd.MM.yyyy hh:mm"));
+    currentItem->addChild(urlInfoItem);
+
+    QNetworkReply* reply = m_webdavManager.put(baseUrl() + toFilePath, file.take());
+    urlInfoItem->setReply(reply);
+    this->connectReply(reply);
 }
 
 void WebdavClient::mkdir(const QString& path)
@@ -203,7 +232,8 @@ void WebdavClient::mkdir(const QString& path)
     }
 
     QNetworkReply* reply = m_webdavManager.mkdir(baseUrl() + path);
-    currentItem->connectReply(reply);
+    currentItem->setReply(reply);
+    this->connectReply(reply);
 }
 
 void WebdavClient::download(const QString& path)
@@ -227,7 +257,7 @@ void WebdavClient::download(const QString& path)
     currentItem->setDownloadPath(localPath);
 
     QNetworkReply* reply = m_webdavManager.get(baseUrl() + path, file.take());
-    currentItem->connectReply(reply);
+    currentItem->setReply(reply);
 }
 
 void WebdavClient::cd(const QString& dir)
@@ -245,6 +275,6 @@ void WebdavClient::refresh()
 {
     qDebug() << "WebdavClient | List url:" << baseUrl() + m_currentItem->name();
     QNetworkReply* reply = m_webdavManager.list(baseUrl() + m_currentItem->name());
-    m_currentItem->connectReply(reply);
+    m_currentItem->setReply(reply);
 }
 

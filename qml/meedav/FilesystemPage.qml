@@ -5,28 +5,36 @@ import "components"
 import "delegates"
 
 Page {
-    tools: commonTools
+    tools: topLevelTools
+
+    Rectangle {
+        id: background
+        anchors.fill: parent
+        color: "white"
+    }
 
     PageHeader {
         id: appTitleRect
-        text: ""
-        busy: false
+        text: folderModel.folder
     }
 
     ListView {
-        width: 200; height: 400
+        anchors.top: appTitleRect.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 0
+        spacing: 10
+        clip: true
 
         FolderListModel {
             id: folderModel
+            showDotAndDotDot: true
+            showOnlyReadable: true
             nameFilters: ["*.*"]
         }
 
-        Component {
-            id: fileDelegate
-            Text { text: fileName }
-        }
-
         model: folderModel
-        delegate: fileDelegate
+        delegate: FileInfoDelegate { }
     }
 }

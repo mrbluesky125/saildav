@@ -86,6 +86,8 @@ private:
     qreal m_progress;
     bool m_busy;
 
+    QNetworkReply* m_reply;
+
 public:
     QWebdavUrlInfo(QWebdavUrlInfo* parent = 0);
     QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent = 0);
@@ -137,12 +139,16 @@ public:
     QDomElement propElement() const;
     const QWebdav::PropValues & properties() const;
 
-    void connectReply(QNetworkReply*);
+    void setReply(QNetworkReply*);
 
 public slots:
+    void abort();
+
+protected slots:
     void error(QNetworkReply::NetworkError code);
     void finished();
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void uploadProgress(qint64 bytesSent, qint64 bytesTotal);
 
 protected:
     void setProgress(qreal progress);

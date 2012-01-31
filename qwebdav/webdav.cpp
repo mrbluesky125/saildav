@@ -53,6 +53,15 @@ void QWebdav::replyFinished(QNetworkReply* reply)
     m_inDataDevices.remove(reply);
 }
 
+void QWebdav::replyError(QNetworkReply::NetworkError)
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
+    delete m_outDataDevices.value(reply, 0);
+    delete m_inDataDevices.value(reply, 0);
+    m_outDataDevices.remove(reply);
+    m_inDataDevices.remove(reply);
+}
+
 QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
 {
      if(outgoingData != 0 && outgoingData->size() !=0) {
@@ -124,6 +133,7 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data)
     QNetworkReply* reply = QNetworkAccessManager::get(req);
     m_inDataDevices.insert(reply, data);
     connect(reply, SIGNAL(readyRead()), this, SLOT(replyReadyRead()));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
     return reply;
 }
 

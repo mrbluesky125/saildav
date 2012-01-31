@@ -47,6 +47,7 @@ QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : AbstractTreeItem(parent
   ,m_downloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
   ,m_progress(-1)
   ,m_busy(false)
+  ,m_reply(0)
 {
 
 }
@@ -72,6 +73,7 @@ QWebdavUrlInfo::QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent) : Ab
   ,m_downloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
   ,m_progress(-1)
   ,m_busy(false)
+  ,m_reply(0)
 {
 
 }
@@ -130,6 +132,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
     bool isDirectory = false;
 
     setName(path);
+    setDisplayName(path.split('/', QString::SkipEmptyParts).back());
 
     for ( int i = 0; i < propstats.count(); i++) {
         QDomElement propstat = propstats.item(i).toElement();
@@ -170,7 +173,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
             else if ( property.tagName() == "getcontentlength" )
                 setSize(property.text().toULong());
             else if ( property.tagName() == "displayname" )
-                setDisplayName(property.text());
+                ;//setDisplayName(property.text());
             else if ( property.tagName() == "source" )
             {
                 QDomElement source;
@@ -262,9 +265,6 @@ void QWebdavUrlInfo::setName(const QString& name)
 
     m_name = name;
     emit nameChanged(name);
-
-    if(name.isEmpty()) return;
-    setDisplayName(name.split('/', QString::SkipEmptyParts).back());
 }
 
 void QWebdavUrlInfo::setOwner(const QString& s)
@@ -528,6 +528,7 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
         }
 
         qDebug() << "QWebdavUrlInfo | Response received: " << item->name();
+        QApplication::processEvents();
     }
 
     //remove not updated items
@@ -549,51 +550,71 @@ void QWebdavUrlInfo::setResponse(const QDomElement& dom)
     }
 }
 
-void QWebdavUrlInfo::connectReply(QNetworkReply* reply)
+void QWebdavUrlInfo::setReply(QNetworkReply* reply)
 {
-    if(reply == 0) return;
-    connect(reply, SIGNAL(finished()), this, SLOT(finished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
+    if(m_reply != 0) {
+        qWarning() << "QWebdavUrlInfo | Reply already set.";
+        return;
+    }
+
+    setProgress(0.0);
+    setBusy(true);
+    m_reply = reply;
+    connect(m_reply, SIGNAL(finished()), this, SLOT(finished()));
+    connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+    connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
+    connect(m_reply, SIGNAL(uploadProgress(qint64,qint64)), this, SLOT(uploadProgress(qint64,qint64)));
+}
+
+void QWebdavUrlInfo::abort()
+{
+    if(m_reply == 0) return;
+    m_reply->abort();
 }
 
 void QWebdavUrlInfo::finished()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
+    QString contentType = m_reply->header(QNetworkRequest::ContentTypeHeader).toString();
+    qDebug() << "QWebdavUrlInfo | Reply finished. Content header:" << contentType;
 
-    if(reply == 0) {
-        qDebug() << "QWebdavUrlInfo | Reply seems not to be a QNetworkReply object. Reply is ignored.";
-        return;
+    if(m_reply->error() != QNetworkReply::NoError) {
+        qDebug() << "QWebdavUrlInfo | Reply has error. Error:" << m_reply->errorString() << "Code:" << m_reply->error();
     }
+    else {
+        QByteArray data = m_reply->readAll();
+        if(data.isEmpty()) {
+            qDebug() << "QWebdavUrlInfo | Reply has no data."; //<< m_reply->rawHeaderPairs();
+        }
 
-    QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
-    qDebug() << "QWebdavUrlInfo | Reply content header:" << contentType;
-
-    QByteArray data = reply->readAll();
-    if(data.isEmpty()) {
-        qDebug() << "QWebdavUrlInfo | Reply has no data.";
-    }
-
-    if(contentType.contains("xml"))
-        setMultiResponse(data);
-    else if(isFile()) {
-        qDebug() << "QWebdavUrlInfo | Download finished. File location:" << downloadPath();
+        if(contentType.contains("xml")) {
+            setMultiResponse(data);
+        }
+        else if(isFile()) {
+            qDebug() << "QWebdavUrlInfo | Download finished. File location:" << downloadPath();
+        }
     }
 
     setBusy(false);
-    reply->deleteLater();
+    setProgress(0.0);
+    m_reply->deleteLater();
+    m_reply = 0;
 }
 
 void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)
 {
-    qDebug() << "QWebdavUrlInfo | Network error occured. Error code:" << code;
-    setBusy(false);
+    qDebug() << "QWebdavUrlInfo | Network error occured. Error:" << m_reply->errorString() << "Code:" << code;
 }
 
 void QWebdavUrlInfo::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
-    setBusy(true);
     qreal progress = (qreal)bytesReceived/(qreal)bytesTotal;
     setProgress(progress > 0 ? progress : bytesTotal);
     qDebug() << "QWebdavUrlInfo | Download progress." << bytesReceived << "Bytes from" << bytesTotal << "received.";
+}
+
+void QWebdavUrlInfo::uploadProgress(qint64 bytesSent, qint64 bytesTotal)
+{
+    qreal progress = (qreal)bytesSent/(qreal)bytesTotal;
+    setProgress(progress > 0 ? progress : bytesTotal);
+    qDebug() << "QWebdavUrlInfo | Upload progress." << bytesSent << "Bytes from" << bytesTotal << "sent.";
 }

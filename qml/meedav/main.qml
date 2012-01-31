@@ -59,8 +59,7 @@ PageStackWindow {
             }
             MenuItem {
                 text: qsTr("Upload")
-                enabled: false
-                onClicked: ;
+                onClicked: appWindow.pageStack.push(Qt.resolvedUrl("FilesystemPage.qml"));
             }
             MenuItem {
                 text: qsTr("Account")
@@ -73,7 +72,7 @@ PageStackWindow {
         }
     }
 
-    Menu {
+    ItemMenu {
         id: itemMenu
         visualParent: pageStack
 
@@ -97,12 +96,42 @@ PageStackWindow {
             }
             MenuItem {
                 text: qsTr("Rename")
-                //enabled: false
                 onClicked: appWindow.pageStack.push(Qt.resolvedUrl("RenamePage.qml"), {item: itemMenu.item});
             }
             MenuItem {
                 text: qsTr("Delete")
                 onClicked: webdavClient.remove(itemMenu.item.name)
+            }
+        }
+    }
+
+    Menu {
+        id: busyMenu
+        visualParent: pageStack
+
+        property WebdavUrlInfo item: WebdavUrlInfo { }
+
+        MenuLayout {
+            MenuItem {
+                text: qsTr("Abort")
+                onClicked: busyMenu.item.abort();
+            }
+        }
+    }
+
+    Menu {
+        id: uploadMenu
+        visualParent: pageStack
+
+        property string filePath: ""
+
+        MenuLayout {
+            MenuItem {
+                text: qsTr("Upload")
+                onClicked: {
+                    webdavClient.upload(webdavClient.currentItem.name, uploadMenu.filePath);
+                    pageStack.pop();
+                }
             }
         }
     }

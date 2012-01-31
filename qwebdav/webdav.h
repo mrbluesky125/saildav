@@ -74,6 +74,7 @@ public:
 protected slots:
     void replyReadyRead();
     void replyFinished(QNetworkReply*);
+    void replyError(QNetworkReply::NetworkError);
 
 protected:
     QNetworkReply* createRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData = 0 );
