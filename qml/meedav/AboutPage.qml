@@ -8,6 +8,8 @@ Page {
     PageHeader {
         id: appTitleRect
         text: "MeeDav"
+        iconEnabled: true
+        iconSource: "images/meedav.svg"
     }
 
     tools: topLevelTools
@@ -26,7 +28,7 @@ Page {
             anchors.right: parent.right
 
             horizontalAlignment: Text.Center
-            text: "Version 0.0.6"
+            text: "Version 0.0.7"
         }
 
         Image {

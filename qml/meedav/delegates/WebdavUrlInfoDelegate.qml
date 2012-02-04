@@ -6,7 +6,7 @@ import "../components"
 Item {
     id: root
     width: parent.width
-    height: 100
+    height: 80
 
     function sizeString() {
         if(size > 1024*1024*1024)
@@ -42,7 +42,7 @@ Item {
 
     Row {
         anchors.fill: parent
-        anchors.margins: 6
+        anchors.margins: 4
         spacing: 10
 
         Image {
@@ -50,28 +50,58 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
             width: parent.height
-            source: dir ? "image://theme/icon-m-common-directory" : "image://theme/icon-l-sharing-document"
+            source: dir ? "../images/icon-m-common-directory.png" : "../images/icon-l-sharing-document.png"
+            smooth: true
+            cache: false
+            transform: Translate {
+                id: logoTrans
+                y: 0
+
+                SequentialAnimation on y {
+                    id: logoAnimation
+                    running: false
+                    loops: Animation.Infinite
+
+                    NumberAnimation {
+                        target: logoTrans
+                        property: "y"
+                        duration: 750
+                        easing.type: Easing.OutQuad
+                        from: 0
+                        to: -10
+                    }
+                    NumberAnimation {
+                        target: logoTrans
+                        property: "y"
+                        duration: 1000
+                        easing.period: 0.5
+                        easing.type: Easing.OutElastic
+                        from: -10
+                        to: 0
+                    }
+                }
+            }
         }
 
         Column {
             anchors.verticalCenter: parent.verticalCenter
             anchors.margins: 6
-            spacing: 3
+            spacing: 2
 
             Label {
                 text: displayName !== "" ? displayName : "UNDEFINED"
-                font.pixelSize: 32
+                font.pixelSize: 26
                 font.family: "Nokia Pure Bold"
             }
 
             Label {
                 text: mimeType
-                font.pixelSize: 16
+                font.pixelSize: 14
             }
 
             Label {
                 text: lastModified + (file ? (" - " + sizeString()) : "")
-                font.pixelSize: 16
+                font.pixelSize: 14
             }
         }
     }
@@ -79,7 +109,8 @@ Item {
     states: State {
         name: "BUSY"
         when: busy
-        PropertyChanges { target: logo; source: "image://theme/icon-m-transfer-download" }
+        PropertyChanges { target: logo; source: "../images/icon-m-email-directory-outgoing.png" }
+        PropertyChanges { target: logoAnimation; running: true }
     }
 
     MouseArea {

@@ -6,10 +6,11 @@ import "delegates"
 Page {
     tools: commonTools
 
-    Rectangle {
+    Image {
         id: background
         anchors.fill: parent
-        color: "white"
+        source: "images/meegotouch-background.png"
+        smooth: true
     }
 
     PageHeader {

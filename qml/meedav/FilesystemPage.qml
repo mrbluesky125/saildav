@@ -5,7 +5,16 @@ import "components"
 import "delegates"
 
 Page {
-    tools: topLevelTools
+    tools: ToolBarLayout {
+        ToolIcon {
+            platformIconId: "toolbar-back"
+            onClicked: folderModel.folder = folderModel.parentFolder
+        }
+        ToolIcon {
+            platformIconId: "toolbar-close"
+            onClicked: appWindow.pageStack.pop()
+        }
+    }
 
     Rectangle {
         id: background
@@ -29,7 +38,7 @@ Page {
 
         FolderListModel {
             id: folderModel
-            showDotAndDotDot: true
+            showDotAndDotDot: false
             showOnlyReadable: true
             nameFilters: ["*.*"]
         }

@@ -4,7 +4,7 @@ import com.nokia.meego 1.0
 Item {
     id: root
     width: parent.width
-    height: 100
+    height: 80
 
     property bool dir: root.ListView.view.model.isFolder(index)
 
@@ -38,7 +38,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
             width: parent.height
-            source: dir ? "image://theme/icon-m-common-directory" : "image://theme/icon-l-sharing-document"
+            source: dir ? "../images/icon-m-common-directory.png" : "../images/icon-l-sharing-document.png"
         }
 
         Column {
@@ -48,7 +48,7 @@ Item {
 
             Label {
                 text: fileName
-                font.pixelSize: 32
+                font.pixelSize: 26
                 font.family: "Nokia Pure Bold"
             }
         }

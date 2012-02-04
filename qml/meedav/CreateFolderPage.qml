@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "components"
 
 import MeeDav 1.0
 
@@ -10,8 +11,16 @@ Page {
 
     tools: topLevelTools
 
+    PageHeader {
+        id: appTitleRect
+        text: "New folder"
+    }
+
     Column {
-        anchors.fill: parent
+        anchors.top: appTitleRect.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
         anchors.margins: 12
         spacing: 12
 

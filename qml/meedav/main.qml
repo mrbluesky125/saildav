@@ -35,7 +35,7 @@ PageStackWindow {
         ToolIcon {
             platformIconId: "toolbar-view-menu"
             anchors.right: (parent === undefined) ? undefined : parent.right
-            onClicked: (menu.status == DialogStatus.Closed) ? menu.open() : menu.close()
+            onClicked: (menu.status === DialogStatus.Closed) ? menu.open() : menu.close()
         }
     }
 
