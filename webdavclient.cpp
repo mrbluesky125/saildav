@@ -113,7 +113,7 @@ QWebdavUrlInfo* WebdavClient::createCachePath(const QString& path)
     }
 
     //check for existing item
-    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_rootItem->findFirst(path, "name"));
+    QWebdavUrlInfo* currentItem = m_rootItem->findFirst<QWebdavUrlInfo>(path, "name");
     if(currentItem != 0)
         return currentItem;
 
@@ -157,7 +157,7 @@ void WebdavClient::rename(const QString& path, const QString& to)
 {
     qDebug() << "WebdavClient | move:" << path << "to:" << to;
 
-    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
+    QWebdavUrlInfo* currentItem = m_currentItem->findFirst<QWebdavUrlInfo>(path, "name");
     if(currentItem == 0) {
         qDebug() << "WebdavClient | Cannot rename entry, not found:" << currentItem->name();
         return;
@@ -178,7 +178,7 @@ void WebdavClient::remove(const QString& path)
     qDebug() << "WebdavClient | remove:" << path;
 
     //I assume the path is a child of the current item to prevent possible deletion of the parent item
-    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
+    QWebdavUrlInfo* currentItem = m_currentItem->findFirst<QWebdavUrlInfo>(path, "name");
     if(currentItem == 0) {
         qDebug() << "WebdavClient | Cannot remove entry, not found:" << currentItem->name();
         return;
@@ -193,7 +193,7 @@ void WebdavClient::upload(const QString& path, const QString& from)
 {
     qDebug() << "WebdavClient | upload " << from << "to:" << path;
 
-    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
+    QWebdavUrlInfo* currentItem = m_currentItem->findFirst<QWebdavUrlInfo>(path, "name");
     if(currentItem == 0) {
         qDebug() << "WebdavClient | Cannot upload, path not found:" << currentItem->name();
         return;
@@ -241,7 +241,7 @@ void WebdavClient::download(const QString& path)
     qDebug() << "WebdavClient | get:" << path;
 
     //I assume that the file is visible and in the cache
-    QWebdavUrlInfo* currentItem = static_cast<QWebdavUrlInfo*>(m_currentItem->findFirst(path, "name"));
+    QWebdavUrlInfo* currentItem = m_currentItem->findFirst<QWebdavUrlInfo>(path, "name");
     if(currentItem == 0) {
         qDebug() << "WebdavClient | Failed to download file, not found:" << currentItem->name();
         return;

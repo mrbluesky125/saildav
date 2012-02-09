@@ -1,10 +1,10 @@
 Source: meedav
 Section: user/other
 Priority: optional
-Maintainer: Timo Zimmermann <meedav@timozimmermann.de >
+Maintainer: Timo Zimmermann <meedav@timozimmermann.de>
 Build-Depends: debhelper (>= 5), libqt4-dev
 Standards-Version: 3.7.3
-Homepage: <insert the upstream URL, if relevant>
+Homepage: https://projects.developer.nokia.com/meedav
 
 Package: meedav
 Architecture: any

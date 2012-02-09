@@ -515,7 +515,7 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
         QString responseName = QUrl::fromPercentEncoding(thisResponse.namedItem("href").toElement().text().toUtf8());
         if(responseName.isEmpty()) continue;
 
-        QWebdavUrlInfo* item = static_cast<QWebdavUrlInfo*>(findFirst(responseName, "name"));
+        QWebdavUrlInfo* item = findFirst<QWebdavUrlInfo>(responseName, "name");
 
         if(item != 0) { //item is already in the list - update only
             item->setResponse(thisResponse);
@@ -595,7 +595,7 @@ void QWebdavUrlInfo::finished()
     }
 
     setBusy(false);
-    setProgress(0.0);
+    //setProgress(0.0);
     m_reply->deleteLater();
     m_reply = 0;
 }

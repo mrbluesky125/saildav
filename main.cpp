@@ -13,7 +13,7 @@ QFile file(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "
 void myMessageOutput(QtMsgType type, const char *msg)
 {
     QTextStream fs(&file);
-    fs << msg;
+    fs << msg << "\n";
 }
 
 Q_DECL_EXPORT int main(int argc, char *argv[])

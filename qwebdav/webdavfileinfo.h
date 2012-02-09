@@ -185,4 +185,6 @@ signals:
     void busyChanged(bool);
 };
 
+QML_DECLARE_TYPE(QWebdavUrlInfo)
+
 #endif /* QWEBDAV_URL_INFO_H */
