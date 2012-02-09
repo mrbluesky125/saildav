@@ -21,7 +21,7 @@ class AbstractTreeModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    AbstractTreeModel(AbstractTreeItem* rootItem);
+    AbstractTreeModel(AbstractTreeItem* rootItem = 0);
     virtual ~AbstractTreeModel();
 
     virtual QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;

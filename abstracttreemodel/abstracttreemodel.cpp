@@ -2,7 +2,7 @@
 #include "abstracttreemodel.h"
 
 AbstractTreeModel::AbstractTreeModel(AbstractTreeItem* rootItem) : QAbstractItemModel()
-  ,m_rootItem(rootItem)
+  ,m_rootItem(rootItem == 0 ? new AbstractTreeItem() : rootItem)
 {
 
 }
