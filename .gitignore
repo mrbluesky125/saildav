@@ -8,3 +8,6 @@
 *.user
 /qwebdav/moc
 /qwebdav/obj
+/meedav-ui/obj
+/meedav-ui/Makefile
+/meedav-ui/moc
