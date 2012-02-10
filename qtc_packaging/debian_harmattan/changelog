@@ -1,7 +1,5 @@
-meedav (0.0.7) unstable; urgency=low
+meedav (0.1.0) unstable; urgency=low
 
-  * Bugfixes.
+  * Restructured project.
 
-  * Visual fixes.
-
- -- Timo Zimmermann <meedav@timozimmermann.de>  Thu, 04 Feb 2012 11:15:47 +0000
+ -- Timo Zimmermann <meedav@timozimmermann.de>  Thu, 10 Feb 2012 20:05:47 +0000
