@@ -6,3 +6,5 @@
 *.user
 /debian
 *.user
+/qwebdav/moc
+/qwebdav/obj
