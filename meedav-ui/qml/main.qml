@@ -13,13 +13,17 @@ PageStackWindow {
     property variant accountPage: AccountPage {}
     property variant mainPage: MainPage {}
 
+    WebdavModel {
+        id: webdavClient
+    }
+
     ToolBarLayout {
         id: commonTools
         visible: true
 
         ToolIcon {
             platformIconId: "toolbar-back"
-            onClicked: webdavClient.cd("..")
+            onClicked: webdavClient.folder = webdavClient.parentFolder
         }
 
         ToolIcon {
@@ -76,7 +80,7 @@ PageStackWindow {
         id: itemMenu
         visualParent: pageStack
 
-        property WebdavUrlInfo item: WebdavUrlInfo { }
+        property WebdavFileInfo item: WebdavFileInfo { }
 
         MenuLayout {
             MenuItem {
@@ -109,7 +113,7 @@ PageStackWindow {
         id: busyMenu
         visualParent: pageStack
 
-        property WebdavUrlInfo item: WebdavUrlInfo { }
+        property WebdavFileInfo item: WebdavFileInfo { }
 
         MenuLayout {
             MenuItem {

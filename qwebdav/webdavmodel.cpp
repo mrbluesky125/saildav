@@ -164,7 +164,7 @@ bool QWebdavModel::createPath(const QString& path)
     foreach(QString dir, dirNames) {
         if(dir == ".");
         else if(dir == "..")
-            currentPath = parentFolder(currentPath);
+            currentPath = parentFolder(currentPath + "/");
         else
             currentPath = createFolder(currentPath, dir);
     }

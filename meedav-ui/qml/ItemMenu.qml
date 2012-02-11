@@ -1,14 +1,14 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
-import MeeDav 1.0
+import Webdav 1.0
 
 Menu {
     id: itemMenu
     visualParent: pageStack
 
     property PageStack pageStack
-    property WebdavUrlInfo item: WebdavUrlInfo { }
+    property WebdavFileInfo item: WebdavFileInfo { }
 
     MenuLayout {
         MenuItem {

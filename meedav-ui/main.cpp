@@ -19,10 +19,10 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QScopedPointer<QApplication> app(MDeclarativeCache::qApplication(argc, argv));
     QScopedPointer<QDeclarativeView> view(MDeclarativeCache::qDeclarativeView());
 
-//    QDeclarativeEngine* engine = view->engine();
-//    QStringList importPathList = engine->importPathList();
-//    importPathList << "/opt/meedav/qml";
-//    engine->setImportPathList(importPathList);
+    QDeclarativeEngine* engine = view->engine();
+    QStringList importPathList = engine->importPathList();
+    importPathList << "/opt/meedav/qml";
+    engine->setImportPathList(importPathList);
 
     view->setSource( QUrl::fromLocalFile("/opt/meedav/qml/main.qml") );
     view->showFullScreen();

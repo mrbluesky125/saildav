@@ -21,7 +21,7 @@ Page {
 
     PageHeader {
         id: appTitleRect
-        text: webdavClient.currentItem.name == webdavClient.homePath ? "Home" : webdavClient.currentItem.displayName
+        text: webdavClient.folder == webdavClient.homePath ? "Home" : webdavClient.currentItem.displayName
         busy: webdavClient.currentItem.busy
     }
 
