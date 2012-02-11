@@ -14,16 +14,18 @@ void myMessageOutput(QtMsgType type, const char *msg)
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     file.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Append);
-//    qInstallMsgHandler(myMessageOutput);
+    qInstallMsgHandler(myMessageOutput);
+
+    QString version = PACKAGEVERSION;
 
     QScopedPointer<QApplication> app(MDeclarativeCache::qApplication(argc, argv));
     QScopedPointer<QDeclarativeView> view(MDeclarativeCache::qDeclarativeView());
 
     QDeclarativeEngine* engine = view->engine();
     QStringList importPathList = engine->importPathList();
-    importPathList << "/opt/meedav/qml";
-    engine->setImportPathList(importPathList);
+    engine->setImportPathList(importPathList << "/opt/meedav/qml");
 
+    view->rootContext()->setContextProperty("version", version);
     view->setSource( QUrl::fromLocalFile("/opt/meedav/qml/main.qml") );
     view->showFullScreen();
 

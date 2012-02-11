@@ -3,7 +3,10 @@ import com.nokia.meego 1.0
 import "components"
 import "delegates"
 
+import Webdav 1.0
+
 Page {
+
     tools: commonTools
 
 //    Image {

@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = meedav-ui
 
-PACKAGEVERSION = $$system(head -n 1 qtc_packaging/debian_harmattan/changelog | grep -o [0-9].[0-9].[0-9])
+PACKAGEVERSION = $$system(head -n 1 ../qtc_packaging/debian_harmattan/changelog | grep -o [0-9].[0-9].[0-9])
 DEFINES += "PACKAGEVERSION=\\\"$$PACKAGEVERSION\\\""
 
 # If your application uses the Qt Mobility libraries, uncomment the following
@@ -47,7 +47,7 @@ desktopfile.files = meedav_harmattan.desktop
 desktopfile.path = /usr/share/applications
 INSTALLS += desktopfile
 
-icons.files = icon-l-meedav.png icon-m-meedav.png
+icons.files = icon-l-meedav.png icon-m-meedav.png icon-l-meedav-application.svg
 icons.path = /usr/share/themes/blanco/meegotouch/icons
 INSTALLS += icons
 
