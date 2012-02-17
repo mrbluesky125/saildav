@@ -45,41 +45,27 @@ Item {
         anchors.margins: 4
         spacing: 10
 
-        Image {
+        Item {
             id: logo
-            anchors.verticalCenter: parent.verticalCenter
             height: parent.height
             width: parent.height
-            source: dir ? "../images/icon-m-common-directory.png" : "../images/icon-l-sharing-document.png"
-            smooth: true
-            cache: false
-            transform: Translate {
-                id: logoTrans
-                y: 0
 
-                SequentialAnimation on y {
-                    id: logoAnimation
-                    running: false
-                    loops: Animation.Infinite
+            Image {
+                anchors.centerIn: parent
+                height: parent.height
+                width: parent.height
+                source: dir ? "../images/icon-m-common-directory.png" : "../images/icon-l-sharing-document.png"
+                smooth: true
+                opacity: busy ? 0.1 : 1.0
+                cache: false
 
-                    NumberAnimation {
-                        target: logoTrans
-                        property: "y"
-                        duration: 750
-                        easing.type: Easing.OutQuad
-                        from: 0
-                        to: -10
-                    }
-                    NumberAnimation {
-                        target: logoTrans
-                        property: "y"
-                        duration: 1000
-                        easing.period: 0.5
-                        easing.type: Easing.OutElastic
-                        from: -10
-                        to: 0
-                    }
-                }
+            }
+
+            BusyIndicator {
+                id: busyIndicator
+                anchors.centerIn: parent
+                visible: busy
+                running: true
             }
         }
 
@@ -104,13 +90,6 @@ Item {
                 font.pixelSize: 14
             }
         }
-    }
-
-    states: State {
-        name: "BUSY"
-        when: busy
-        PropertyChanges { target: logo; source: "../images/icon-m-email-directory-outgoing.png" }
-        PropertyChanges { target: logoAnimation; running: true }
     }
 
     MouseArea {

@@ -56,6 +56,9 @@ SOURCES += main.cpp
 
 HEADERS += 
 
+OTHER_FILES += \
+    qml/delegates/SectionDelegate.qml
+
 
 
 

@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import com.nokia.extras 1.0
 
 import "js/core.js" as Core
 
@@ -13,8 +14,20 @@ PageStackWindow {
     property variant accountPage: AccountPage {}
     property variant mainPage: MainPage {}
 
+    function showError(msg) {
+        banner.text = msg;
+        iconSource: "image://theme/icon-l-error"
+        banner.show();
+    }
+
+    InfoBanner {
+        id: banner
+        y: 50
+    }
+
     WebdavModel {
         id: webdavClient
+        onErrorChanged: showError(error);
     }
 
     ToolBarLayout {

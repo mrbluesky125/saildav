@@ -1,5 +1,9 @@
-meedav (0.1.0) unstable; urgency=low
+meedav (0.1.2) unstable; urgency=low
 
-  * Restructured project.
+  * Bugfix: Crash on path that doesn't ends with '/' fixed
+  * Sorting added
+  * Sections added
+  * Visual changes
+  * Info banner on network errors
 
- -- Timo Zimmermann <meedav@timozimmermann.de>  Thu, 10 Feb 2012 20:05:47 +0000
+ -- Timo Zimmermann <meedav@timozimmermann.de>  Thu, 16 Feb 2012 20:05:47 +0000

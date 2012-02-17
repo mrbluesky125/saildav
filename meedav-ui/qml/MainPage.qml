@@ -6,15 +6,7 @@ import "delegates"
 import Webdav 1.0
 
 Page {
-
     tools: commonTools
-
-//    Image {
-//        id: background
-//        anchors.fill: parent
-//        source: "images/meegotouch-background.png"
-//        smooth: true
-//    }
 
     Rectangle {
         id: background
@@ -25,7 +17,18 @@ Page {
     PageHeader {
         id: appTitleRect
         text: webdavClient.folder == webdavClient.homePath ? "Home" : webdavClient.currentItem.displayName
-        busy: webdavClient.currentItem.busy
+    }
+
+    BusyIndicator {
+        anchors.centerIn: parent
+        running: webdavClient.currentItem.busy
+        opacity: webdavClient.currentItem.busy ? 1.0 : 0.0
+
+        Behavior on opacity { NumberAnimation {} }
+
+        platformStyle: BusyIndicatorStyle {
+            size: "large"
+        }
     }
 
     ListView {
@@ -40,8 +43,17 @@ Page {
 
         section.property: "displayName"
         section.criteria: ViewSection.FirstCharacter
+        section.delegate: SectionDelegate { }
 
         delegate: WebdavUrlInfoDelegate { }
         model: webdavClient.currentItem.childs
+    }
+
+
+    ScrollDecorator {
+        flickableItem: itemView
+        platformStyle: ScrollDecoratorStyle {
+
+        }
     }
 }

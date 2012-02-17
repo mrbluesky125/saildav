@@ -29,6 +29,8 @@ class QWebdavModel : public AbstractTreeModel, public QDeclarativeParserStatus
     QString m_password;
     QString m_homePath;
 
+    bool m_refreshFlag;
+
 public:
     QWebdavModel(QObject *parent = 0);
 
@@ -79,7 +81,7 @@ protected slots:
 
 signals:
     void folderChanged();
-    void errorChanged(QString);
+    void errorChanged(QString error);
 
     void baseUrlChanged(QString);
     void userNameChanged(QString);

@@ -535,6 +535,8 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
     foreach(AbstractTreeItem* item, oldItems) {
         removeChild(item);
     }
+
+    sort();
 }
 
 void QWebdavUrlInfo::setResponse(const QDomElement& dom)
@@ -566,6 +568,25 @@ void QWebdavUrlInfo::setReply(QNetworkReply* reply)
     connect(m_reply, SIGNAL(uploadProgress(qint64,qint64)), this, SLOT(uploadProgress(qint64,qint64)));
 }
 
+bool lessThan(AbstractTreeItem* item1, AbstractTreeItem* item2)
+{
+    return (*static_cast<QWebdavUrlInfo*>(item1)) < (*static_cast<QWebdavUrlInfo*>(item2));
+}
+
+bool QWebdavUrlInfo::operator <(const QWebdavUrlInfo &other) const
+{
+    if(isDir() != other.isDir())
+        return isDir();
+
+    return displayName().toLower() < other.displayName().toLower();
+}
+
+void QWebdavUrlInfo::sort(Qt::SortOrder order)
+{
+    qSort(m_childItems.begin(), m_childItems.end(), lessThan);
+    emit childsChanged();
+}
+
 void QWebdavUrlInfo::abort()
 {
     if(m_reply == 0) return;
@@ -588,6 +609,7 @@ void QWebdavUrlInfo::finished()
 
         if(contentType.contains("xml")) {
             setMultiResponse(data);
+            //qDebug() << data;
         }
         else if(isFile()) {
             qDebug() << "QWebdavUrlInfo | Download finished. File location:" << downloadPath();
@@ -608,7 +630,7 @@ void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)
 void QWebdavUrlInfo::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
     qreal progress = (qreal)bytesReceived/(qreal)bytesTotal;
-    setProgress(progress > 0 ? progress : bytesTotal);
+    setProgress(progress > 0 ? progress : 0);
     qDebug() << "QWebdavUrlInfo | Download progress." << bytesReceived << "Bytes from" << bytesTotal << "received.";
 }
 

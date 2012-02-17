@@ -6,6 +6,7 @@ QWebdavModel::QWebdavModel(QObject *parent) : AbstractTreeModel(new QWebdavUrlIn
   ,m_homePath("/")
   ,m_userName("")
   ,m_password("")
+  ,m_refreshFlag(false)
 {
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
 }
@@ -29,7 +30,8 @@ void QWebdavModel::setFolder(const QString& path)
 {
     if(m_folder == path) return;
 
-    if(createPath(path) == 0) return;
+    if(!createPath(path)) return;
+
     m_folder = path;
     QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
     emit folderChanged();
@@ -112,12 +114,16 @@ void QWebdavModel::componentComplete()
 
 void QWebdavModel::replyFinished()
 {
-    refresh();
+    if(m_refreshFlag == true)
+        QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
 }
 
 void QWebdavModel::replyError(QNetworkReply::NetworkError error)
 {
     qDebug() << "QWebdavModel | NetworkError:" << error;
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
+    if(reply == 0) return;
+    emit errorChanged(reply->errorString());
 }
 
 void QWebdavModel::authenticationRequired(QNetworkReply* reply, QAuthenticator* authenticator)
@@ -186,9 +192,11 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
     QWebdavUrlInfo* urlInfoItem = new QWebdavUrlInfo(path + dirName + "/");
     urlInfoItem->setDisplayName(dirName);
     urlInfoItem->setDir(true);
+    urlInfoItem->setFile(false);
+    urlInfoItem->setLastModified(QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm"));
     item(path)->addChild(urlInfoItem);
 
-    qDebug() << "QWebdavModel | Create folder:" << urlInfoItem->name();
+    qDebug() << "QWebdavModel | Create folder:" << dirName;
 
     return urlInfoItem->name();
 }
@@ -215,7 +223,8 @@ void QWebdavModel::rename(const QString& path, const QString& to)
 
     QNetworkReply* reply = m_webdavManager.move(baseUrl() + path, baseUrl() + pathTo);
     currentItem->setReply(reply);
-    this->connectReply(reply);
+    connectReply(reply);
+    m_refreshFlag = true;
 }
 
 void QWebdavModel::remove(const QString& path)
@@ -230,7 +239,8 @@ void QWebdavModel::remove(const QString& path)
 
     QNetworkReply* reply = m_webdavManager.remove(baseUrl() + path);
     currentItem->setReply(reply);
-    this->connectReply(reply);
+    connectReply(reply);
+    m_refreshFlag = true;
 }
 
 void QWebdavModel::upload(const QString& path, const QString& from)
@@ -263,7 +273,8 @@ void QWebdavModel::upload(const QString& path, const QString& from)
 
     QNetworkReply* reply = m_webdavManager.put(baseUrl() + toFilePath, file.take());
     urlInfoItem->setReply(reply);
-    this->connectReply(reply);
+    connectReply(reply);
+    m_refreshFlag = true;
 }
 
 void QWebdavModel::mkdir(const QString& path)
@@ -276,7 +287,8 @@ void QWebdavModel::mkdir(const QString& path)
 
     QNetworkReply* reply = m_webdavManager.mkdir(baseUrl() + path);
     item(path)->setReply(reply);
-    this->connectReply(reply);
+    connectReply(reply);
+    m_refreshFlag = true;
 }
 
 void QWebdavModel::download(const QString& path)
@@ -286,7 +298,7 @@ void QWebdavModel::download(const QString& path)
     //I assume that the file is visible and in the cache
     QWebdavUrlInfo* currentItem = item(path);
     if(currentItem == 0) {
-        qDebug() << "QWebdavModel | Failed to download file, not found:" << path;
+        qDebug() << "QWebdavModel | Failed to download file. File not found:" << path;
         return;
     }
 
@@ -301,12 +313,14 @@ void QWebdavModel::download(const QString& path)
 
     QNetworkReply* reply = m_webdavManager.get(baseUrl() + path, file.take());
     currentItem->setReply(reply);
+    connectReply(reply);
 }
 
 void QWebdavModel::cd(const QString& dir)
 {
     qDebug() << "QWebdavModel | cd:" << dir;
     QString path = dir.startsWith("/") ? dir : folder() + dir;
+    if(!path.endsWith('/')) path += "/";
     setFolder(path);
 }
 
@@ -314,7 +328,9 @@ void QWebdavModel::refresh()
 {
     qDebug() << "QWebdavModel | List url:" << baseUrl() + folder();
     QNetworkReply* reply = m_webdavManager.list(baseUrl() + folder());
+    m_refreshFlag = false;
     currentItem()->setReply(reply);
+    connectReply(reply);
 }
 
 

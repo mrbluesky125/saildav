@@ -93,6 +93,8 @@ public:
     QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent = 0);
     virtual ~QWebdavUrlInfo();
 
+    bool operator <(const QWebdavUrlInfo& other) const;
+
 public:
     void setDir(bool b);
     void setFile(bool b);
@@ -140,6 +142,7 @@ public:
     const QWebdav::PropValues & properties() const;
 
     void setReply(QNetworkReply*);
+    void sort(Qt::SortOrder order = Qt::AscendingOrder);
 
 public slots:
     void abort();
@@ -183,6 +186,7 @@ signals:
     void downloadPathChanged(QString);
     void progressChanged(qreal);
     void busyChanged(bool);
+    void errorChanged(QString);
 };
 
 QML_DECLARE_TYPE(QWebdavUrlInfo)
