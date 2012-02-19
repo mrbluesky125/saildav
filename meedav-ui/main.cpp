@@ -14,7 +14,7 @@ void myMessageOutput(QtMsgType type, const char *msg)
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     file.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Append);
-    //qInstallMsgHandler(myMessageOutput);
+    qInstallMsgHandler(myMessageOutput);
 
     QString version = PACKAGEVERSION;
 

@@ -28,7 +28,7 @@ QString QWebdavModel::folder() const
 
 void QWebdavModel::setFolder(const QString& path)
 {
-    if(m_folder == path) return;
+    //if(m_folder == path) return;
 
     if(!createPath(path)) return;
 

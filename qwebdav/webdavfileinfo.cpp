@@ -132,7 +132,8 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
     bool isDirectory = false;
 
     setName(path);
-    setDisplayName(path.split('/', QString::SkipEmptyParts).back());
+    QStringList pathElements = path.split('/', QString::SkipEmptyParts);
+    setDisplayName(pathElements.isEmpty() ? "/" : pathElements.back());
 
     for ( int i = 0; i < propstats.count(); i++) {
         QDomElement propstat = propstats.item(i).toElement();
@@ -608,8 +609,8 @@ void QWebdavUrlInfo::finished()
         }
 
         if(contentType.contains("xml")) {
-            setMultiResponse(data);
             //qDebug() << data;
+            setMultiResponse(data);
         }
         else if(isFile()) {
             qDebug() << "QWebdavUrlInfo | Download finished. File location:" << downloadPath();

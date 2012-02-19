@@ -28,7 +28,7 @@ Page {
             anchors.right: parent.right
 
             horizontalAlignment: Text.Center
-            text: "Version 0.1.2" //+ version
+            text: "Version 0.1.3" //+ version
         }
 
         Image {
