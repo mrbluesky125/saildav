@@ -56,7 +56,6 @@ class QWebdavUrlInfo : public AbstractTreeItem
     Q_PROPERTY(QString entitytag READ entitytag WRITE setEntitytag NOTIFY entitytagChanged)
     Q_PROPERTY(QString mimeType READ mimeType WRITE setMimeType NOTIFY mimeTypeChanged)
 
-    Q_PROPERTY(QString downloadPath READ downloadPath WRITE setDownloadPath NOTIFY downloadPathChanged)
     Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(bool busy READ isBusy NOTIFY busyChanged)
 
@@ -114,8 +113,6 @@ public:
     void setEntitytag(const QString& etag);
     void setMimeType(const QString& mime);
 
-    void setDownloadPath(const QString&);
-
     bool isDir() const;
     bool isFile() const;
     QString group() const;
@@ -134,12 +131,8 @@ public:
     QString entitytag() const;
     QString mimeType() const;
 
-    QString downloadPath() const;
     qreal progress() const;
     bool isBusy() const;
-
-    QDomElement propElement() const;
-    const QWebdav::PropValues & properties() const;
 
     void setReply(QNetworkReply*);
     void sort(Qt::SortOrder order = Qt::AscendingOrder);
@@ -183,7 +176,6 @@ signals:
     void entitytagChanged(QString);
     void mimeTypeChanged(QString);
 
-    void downloadPathChanged(QString);
     void progressChanged(qreal);
     void busyChanged(bool);
     void errorChanged(QString);

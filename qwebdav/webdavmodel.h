@@ -20,14 +20,13 @@ class QWebdavModel : public AbstractTreeModel, public QDeclarativeParserStatus
     Q_PROPERTY(QString baseUrl READ baseUrl WRITE setBaseUrl NOTIFY baseUrlChanged)
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged)
     Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
-    Q_PROPERTY(QString homePath READ homePath WRITE setHomePath NOTIFY homePathChanged)
+    Q_PROPERTY(QString homePath READ homePath NOTIFY baseUrlChanged)
 
     QWebdav m_webdavManager;
     QString m_folder;
     QUrl m_baseUrl;
-    QString m_userName;
-    QString m_password;
     QString m_homePath;
+    QString m_localRootPath;
 
     bool m_refreshFlag;
 
@@ -53,7 +52,6 @@ public:
     void setBaseUrl(const QString&);
     void setUserName(const QString&);
     void setPassword(const QString&);
-    void setHomePath(const QString&);
 
     void classBegin();
     void componentComplete();
@@ -72,7 +70,11 @@ protected:
     QString parentFolder(const QString& path) const;
     bool createPath(const QString& path);
     QString createFolder(const QString& path, const QString& dirName);
-    QWebdavUrlInfo* item(const QString& path) const;
+    QWebdavUrlInfo* findItem(const QString& path) const;
+    QString rectifyPath(const QString& path);
+
+    QString localRootPath() const;
+    void setLocalRootPath(const QString& path);
 
 protected slots:
     void replyFinished();
@@ -83,10 +85,9 @@ signals:
     void folderChanged();
     void errorChanged(QString error);
 
-    void baseUrlChanged(QString);
-    void userNameChanged(QString);
-    void passwordChanged(QString);
-    void homePathChanged(QString);
+    void baseUrlChanged();
+    void userNameChanged();
+    void passwordChanged();
 };
 
 QML_DECLARE_TYPE(QWebdavModel)

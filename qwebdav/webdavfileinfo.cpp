@@ -44,7 +44,6 @@ QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : AbstractTreeItem(parent
   ,m_contentLanguage()
   ,m_entityTag()
   ,m_mimeType()
-  ,m_downloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
   ,m_progress(-1)
   ,m_busy(false)
   ,m_reply(0)
@@ -70,7 +69,6 @@ QWebdavUrlInfo::QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent) : Ab
   ,m_contentLanguage()
   ,m_entityTag()
   ,m_mimeType()
-  ,m_downloadPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
   ,m_progress(-1)
   ,m_busy(false)
   ,m_reply(0)
@@ -162,8 +160,6 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
             if (property.isNull())
                 continue;
 
-            m_properties[property.namespaceURI()][property.tagName()] = property.text();
-
             if ( property.namespaceURI() != "DAV:" ) {
                 // break out - we're only interested in properties from the DAV namespace
                 continue;
@@ -178,9 +174,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
             else if ( property.tagName() == "source" )
             {
                 QDomElement source;
-
-                source = property.namedItem( "link" ).toElement()
-                         .namedItem( "dst" ).toElement();
+                source = property.namedItem( "link" ).toElement().namedItem( "dst" ).toElement();
 
                 if ( !source.isNull() )
                     setSource(source.text());
@@ -380,14 +374,6 @@ void QWebdavUrlInfo::setBusy(bool busy)
     emit busyChanged(busy);
 }
 
-void QWebdavUrlInfo::setDownloadPath(const QString& downloadPath)
-{
-    if(m_downloadPath == downloadPath) return;
-
-    m_downloadPath = downloadPath;
-    emit downloadPathChanged(m_downloadPath);
-}
-
 bool QWebdavUrlInfo::isDir() const
 {
     return m_dir;
@@ -483,21 +469,6 @@ bool QWebdavUrlInfo::isBusy() const
     return m_busy;
 }
 
-QString QWebdavUrlInfo::downloadPath() const
-{
-    return m_downloadPath;
-}
-
-QDomElement QWebdavUrlInfo::propElement() const
-{
-    return m_node.toElement();
-}
-
-const QWebdav::PropValues& QWebdavUrlInfo::properties() const
-{
-    return m_properties;
-}
-
 void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
 {
     //get current child list
@@ -517,6 +488,7 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
         if(responseName.isEmpty()) continue;
 
         QWebdavUrlInfo* item = findFirst<QWebdavUrlInfo>(responseName, "name");
+        if(item == 0) item = findFirst<QWebdavUrlInfo>(responseName + "/", "name");
 
         if(item != 0) { //item is already in the list - update only
             item->setResponse(thisResponse);
@@ -543,14 +515,11 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
 void QWebdavUrlInfo::setResponse(const QDomElement& dom)
 {
     QDomElement href = dom.namedItem( "href" ).toElement();
-    m_node = dom.cloneNode();
+    if ( href.isNull() ) return;
 
-    if ( !href.isNull() )
-    {
-        QString urlStr = QUrl::fromPercentEncoding(href.text().toUtf8());
-        QDomNodeList propstats = dom.elementsByTagName( "propstat" );
-        davParsePropstats( urlStr, propstats );
-    }
+    QString urlStr = QUrl::fromPercentEncoding(href.text().toUtf8());
+    QDomNodeList propstats = dom.elementsByTagName( "propstat" );
+    davParsePropstats( urlStr, propstats );
 }
 
 void QWebdavUrlInfo::setReply(QNetworkReply* reply)
@@ -613,7 +582,7 @@ void QWebdavUrlInfo::finished()
             setMultiResponse(data);
         }
         else if(isFile()) {
-            qDebug() << "QWebdavUrlInfo | Download finished. File location:" << downloadPath();
+            qDebug() << "QWebdavUrlInfo | Download of" << displayName() << "finished.";
         }
     }
 

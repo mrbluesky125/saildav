@@ -16,7 +16,7 @@ PageStackWindow {
 
     function showError(msg) {
         banner.text = msg;
-        iconSource= "image://theme/icon-l-error"
+        banner.iconSource = "image://theme/icon-l-error"
         banner.show();
     }
 

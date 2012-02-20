@@ -4,8 +4,7 @@
 QWebdavModel::QWebdavModel(QObject *parent) : AbstractTreeModel(new QWebdavUrlInfo("/"))
   ,m_folder("/")
   ,m_homePath("/")
-  ,m_userName("")
-  ,m_password("")
+  ,m_localRootPath(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation) + "/meedav/")
   ,m_refreshFlag(false)
 {
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
@@ -28,9 +27,7 @@ QString QWebdavModel::folder() const
 
 void QWebdavModel::setFolder(const QString& path)
 {
-    //if(m_folder == path) return;
-
-    if(!createPath(path)) return;
+    if(m_folder == path || !createPath(path)) return;
 
     m_folder = path;
     QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
@@ -44,67 +41,63 @@ QString QWebdavModel::parentFolder() const
 
 QWebdavUrlInfo* QWebdavModel::currentItem() const
 {
-    return item(folder()) ;
+    return findItem(folder()) ;
 }
 
 QString QWebdavModel::baseUrl() const
 {
-    return m_baseUrl.toString(QUrl::RemovePath);
+    return m_baseUrl.toString(QUrl::RemovePath | QUrl::RemoveUserInfo);
 }
 
 QString QWebdavModel::userName() const
 {
-    return m_userName;
+    return m_baseUrl.userName();
 }
 
 QString QWebdavModel::password() const
 {
-    return m_password;
+    return m_baseUrl.password();
 }
 
 QString QWebdavModel::homePath() const
 {
-    return m_homePath;
+    return m_baseUrl.path().isEmpty() ? "/" : m_baseUrl.path();
 }
 
 void QWebdavModel::setBaseUrl(const QString& baseUrl)
 {
-    //if(m_baseUrl.toString() == baseUrl) return;
+    if(m_baseUrl.toString() == baseUrl) return;
+
+    QString userName = this->userName();
+    QString password = this->password();
 
     m_baseUrl.setUrl(baseUrl);
-    emit baseUrlChanged(baseUrl);
+    m_baseUrl.setUserName(userName);
+    m_baseUrl.setPassword(password);
+    emit baseUrlChanged();
 
-    setHomePath(m_baseUrl.path());
-    cd(homePath());
+    setLocalRootPath(localRootPath()+m_baseUrl.host()+"/");
 }
 
 void QWebdavModel::setUserName(const QString& userName)
 {
-    if(m_userName == userName) return;
+    if(m_baseUrl.userName() == userName) return;
 
-    m_userName = userName;
-    emit userNameChanged(m_userName);
+    m_baseUrl.setUserName(userName);
+    emit userNameChanged();
 }
 
 void QWebdavModel::setPassword(const QString& password)
 {
-    if(m_password == password) return;
+    if(m_baseUrl.password() == password) return;
 
-    m_password = password;
-    emit passwordChanged(m_password);
-}
-
-void QWebdavModel::setHomePath(const QString& homePath)
-{
-    if(m_homePath == homePath) return;
-
-    m_homePath = homePath;
-    emit homePathChanged(m_homePath);
+    m_baseUrl.setPassword(password);
+    emit passwordChanged();
 }
 
 void QWebdavModel::classBegin()
 {
-
+    setLocalRootPath(m_localRootPath); //make sure the local application dir is created
 }
 
 void QWebdavModel::componentComplete()
@@ -121,15 +114,16 @@ void QWebdavModel::replyFinished()
 void QWebdavModel::replyError(QNetworkReply::NetworkError error)
 {
     qDebug() << "QWebdavModel | NetworkError:" << error;
+
+    //sender is always a network reply, no check necessary
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
-    if(reply == 0) return;
     emit errorChanged(reply->errorString());
 }
 
 void QWebdavModel::authenticationRequired(QNetworkReply* reply, QAuthenticator* authenticator)
 {
-    qDebug() << "QWebdavModel | Authentification for" << m_baseUrl.toString() << "required";
-    qDebug() << "QWebdavModel | Login with user:" << userName();
+    qDebug() << "QWebdavModel | Authentification for" << baseUrl() << "required.";
+    qDebug() << "QWebdavModel | Trying to login...";
     authenticator->setUser(userName());
     authenticator->setPassword(password());
 }
@@ -143,7 +137,7 @@ void QWebdavModel::connectReply(QNetworkReply* reply)
 
 QString QWebdavModel::parentFolder(const QString& path) const
 {
-    QWebdavUrlInfo* item = this->item(path);
+    QWebdavUrlInfo* item = findItem(path);
     if(item == 0 || item == m_rootItem)
         return dynamic_cast<QWebdavUrlInfo*>(m_rootItem)->name();
     else
@@ -160,13 +154,13 @@ bool QWebdavModel::createPath(const QString& path)
     }
 
     //check for existing item
-    QWebdavUrlInfo* currentItem = item(path);
+    QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem != 0)
         return true;
 
     //step through the path parts
     QStringList dirNames = path.split('/', QString::SkipEmptyParts);
-    QString currentPath = "/";
+    QString currentPath = dynamic_cast<QWebdavUrlInfo*>(m_rootItem)->name();
     foreach(QString dir, dirNames) {
         if(dir == ".");
         else if(dir == "..")
@@ -182,7 +176,7 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
     if(path.isEmpty() || dirName.isEmpty()) return path;
 
     //search
-    foreach(AbstractTreeItem* item, item(path)->childList()) {
+    foreach(AbstractTreeItem* item, findItem(path)->childList()) {
         QWebdavUrlInfo* urlInfoItem = static_cast<QWebdavUrlInfo*>(item);
         if(urlInfoItem->name().endsWith(dirName + "/"))
             return urlInfoItem->name();
@@ -194,23 +188,46 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
     urlInfoItem->setDir(true);
     urlInfoItem->setFile(false);
     urlInfoItem->setLastModified(QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm"));
-    item(path)->addChild(urlInfoItem);
+    findItem(path)->addChild(urlInfoItem);
 
     qDebug() << "QWebdavModel | Create folder:" << dirName;
 
     return urlInfoItem->name();
 }
 
- QWebdavUrlInfo* QWebdavModel::item(const QString& path) const
+QWebdavUrlInfo* QWebdavModel::findItem(const QString& path) const
+{
+    return m_rootItem->findFirst<QWebdavUrlInfo>(path, "name");
+}
+
+ QString QWebdavModel::rectifyPath(const QString& path)
  {
-     return m_rootItem->findFirst<QWebdavUrlInfo>(path, "name");
- }
+    QString rectified = path;
+    rectified = rectified.startsWith("/") ? rectified : folder() + rectified;
+    rectified = rectified.endsWith("/") ? rectified : rectified + "/";
+    return rectified;
+}
+
+QString QWebdavModel::localRootPath() const
+{
+    return m_localRootPath;
+}
+
+void QWebdavModel::setLocalRootPath(const QString& path)
+{
+    m_localRootPath = path;
+
+    qDebug() << "QWebdavModel | Create local dir:" << path;
+    if(!QDir().mkpath(path)) {
+        qDebug() << "QWebdavModel | Failed to create local dir:" << path;
+    }
+}
 
 void QWebdavModel::rename(const QString& path, const QString& to)
 {
     qDebug() << "QWebdavModel | move:" << path << "to:" << to;
 
-    QWebdavUrlInfo* currentItem = item(path);
+    QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
         qDebug() << "QWebdavModel | Cannot rename entry, not found:" << currentItem->name();
         return;
@@ -231,7 +248,7 @@ void QWebdavModel::remove(const QString& path)
 {
     qDebug() << "QWebdavModel | remove:" << path;
 
-    QWebdavUrlInfo* currentItem = item(path);
+    QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
         qDebug() << "QWebdavModel | Cannot remove entry, not found:" << currentItem->name();
         return;
@@ -247,7 +264,7 @@ void QWebdavModel::upload(const QString& path, const QString& from)
 {
     qDebug() << "QWebdavModel | upload " << from << "to:" << path;
 
-    QWebdavUrlInfo* currentItem = item(path);
+    QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
         qDebug() << "QWebdavModel | Cannot upload" << from << ", path not found:" << path;
         return;
@@ -281,12 +298,12 @@ void QWebdavModel::mkdir(const QString& path)
 {
     qDebug() << "QWebdavModel | mkdir:" << path;
     if(!createPath(path)) {
-        qDebug() << "QWebdavModel | Failed to create new folder:" << path;
+        qDebug() << "QWebdavModel | Failed to create new remote folder:" << path;
         return;
     }
 
     QNetworkReply* reply = m_webdavManager.mkdir(baseUrl() + path);
-    item(path)->setReply(reply);
+    findItem(path)->setReply(reply);
     connectReply(reply);
     m_refreshFlag = true;
 }
@@ -296,20 +313,18 @@ void QWebdavModel::download(const QString& path)
     qDebug() << "QWebdavModel | get:" << path;
 
     //I assume that the file is visible and in the cache
-    QWebdavUrlInfo* currentItem = item(path);
+    QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
         qDebug() << "QWebdavModel | Failed to download file. File not found:" << path;
         return;
     }
 
-    QString localPath = QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/" + currentItem->displayName();
+    QString localPath = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation) + "/" + currentItem->displayName();
     QScopedPointer<QFile> file(new QFile(localPath));
     if(!file->open(QFile::WriteOnly)) {
         qDebug() << "QWebdavModel | Unable to write to local file:" << localPath;
         return;
     }
-
-    currentItem->setDownloadPath(localPath);
 
     QNetworkReply* reply = m_webdavManager.get(baseUrl() + path, file.take());
     currentItem->setReply(reply);
@@ -318,9 +333,8 @@ void QWebdavModel::download(const QString& path)
 
 void QWebdavModel::cd(const QString& dir)
 {
-    qDebug() << "QWebdavModel | cd:" << dir;
-    QString path = dir.startsWith("/") ? dir : folder() + dir;
-    if(!path.endsWith('/')) path += "/";
+    QString path = rectifyPath(dir);
+    qDebug() << "QWebdavModel | cd:" << path;
     setFolder(path);
 }
 
@@ -328,9 +342,10 @@ void QWebdavModel::refresh()
 {
     qDebug() << "QWebdavModel | List url:" << baseUrl() + folder();
     QNetworkReply* reply = m_webdavManager.list(baseUrl() + folder());
-    m_refreshFlag = false;
     currentItem()->setReply(reply);
     connectReply(reply);
+
+    m_refreshFlag = false;
 }
 
 

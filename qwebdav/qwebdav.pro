@@ -8,15 +8,18 @@ QT += xml network declarative
 uri = Webdav
 
 include(abstracttreemodel/abstracttreemodel.pri)
+include(qxmlstreambase/qxmlstreambase.pri)
 
 HEADERS += webdav.h \
     webdavfileinfo.h \
     webdavmodel.h \
-    webdavplugin.h
+    webdavplugin.h \
+    webdavfileinfostreamer.h
 
 SOURCES += webdav.cpp \
     webdavfileinfo.cpp \
-    webdavmodel.cpp
+    webdavmodel.cpp \
+    webdavfileinfostreamer.cpp
 
 OTHER_FILES += qmldir
 
