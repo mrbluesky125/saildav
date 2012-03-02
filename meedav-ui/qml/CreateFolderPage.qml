@@ -7,7 +7,7 @@ import Webdav 1.0
 Page {
     id: root
 
-    property WebdavFileInfo item
+    property WebdavModel model
 
     tools: topLevelTools
 
@@ -33,7 +33,7 @@ Page {
             anchors.left: parent.left
             anchors.right: parent.right
             enabled: false
-            text: item.name
+            text: model.folder
         }
 
         Label {
@@ -53,7 +53,7 @@ Page {
             enabled: inputField.text != ""
             text: "Create folder"
             onClicked: {
-                webdavClient.mkdir(currentField.text + inputField.text + "/");
+                model.mkdir(currentField.text + inputField.text + "/");
                 pageStack.pop();
             }
         }

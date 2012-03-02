@@ -15,61 +15,66 @@ Page {
         text: "MeeDav"
     }
 
-    Column {
+    Flickable {
         anchors.top: appTitleRect.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.margins: 12
-        spacing: 6
+        contentHeight: childrenRect.height
 
-        Label {
-            text: "Username"
-        }
+        Column {
+            id: contentColumn
 
-        TextField {
             anchors.left: parent.left
             anchors.right: parent.right
-            id: usernameField
-            text: account.username
-        }
+            anchors.margins: 12
+            spacing: 6
 
-        Label {
-            text: "Password"
-        }
+            Label {
+                text: "Username"
+            }
 
-        TextField {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            id: passwordField
-            text: account.password
-            echoMode: TextInput.Password
-        }
+            TextField {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                id: usernameField
+                text: account.username
+            }
 
-        Label {
-            text: "Server/URL"
-        }
+            Label {
+                text: "Password"
+            }
 
-        TextField {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            id: urlField
-            text: account.url
-        }
+            TextField {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                id: passwordField
+                text: account.password
+                echoMode: TextInput.Password
+            }
 
-        Label {
-            text: " "
-        }
-        Button {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "Save"
-            onClicked: {
-                var updateAccount =  {id: account.id, username: usernameField.text, password: passwordField.text, url: urlField.text }
-                Core.updateAccount( updateAccount );
-                webdavClient.userName = updateAccount.username;
-                webdavClient.password = updateAccount.password;
-                webdavClient.baseUrl = updateAccount.url;
-                root.pageStack.pop();
+            Label {
+                text: "Server/URL"
+            }
+
+            TextField {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                id: urlField
+                text: account.url
+            }
+
+            Label {
+                text: " "
+            }
+            Button {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "Save"
+                onClicked: {
+                    var updateAccount =  {id: account.id, username: usernameField.text, password: passwordField.text, url: urlField.text }
+                    Core.updateAccount( updateAccount );
+                    pageStack.replace(Qt.resolvedUrl("WebdavPage.qml"), {account: Core.getAccount()});
+                }
             }
         }
     }

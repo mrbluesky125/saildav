@@ -4,7 +4,13 @@ import Qt.labs.folderlistmodel 1.0
 import "components"
 import "delegates"
 
+import Webdav 1.0
+
 Page {
+    id: root
+
+    property WebdavModel model
+
     tools: ToolBarLayout {
         ToolIcon {
             platformIconId: "toolbar-back"
@@ -45,5 +51,10 @@ Page {
 
         model: folderModel
         delegate: FileInfoDelegate { }
+
+        function upload(localpath) {
+            model.upload(model.folder, localpath);
+            pageStack.pop();
+        }
     }
 }

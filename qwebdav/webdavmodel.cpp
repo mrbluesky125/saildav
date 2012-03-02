@@ -4,10 +4,15 @@
 QWebdavModel::QWebdavModel(QObject *parent) : AbstractTreeModel(new QWebdavUrlInfo("/"))
   ,m_folder("/")
   ,m_homePath("/")
-  ,m_localRootPath(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation) + "/meedav/")
+  ,m_localRootPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/MyDocs/meedav/")
   ,m_refreshFlag(false)
 {
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
+}
+
+QWebdavModel::~QWebdavModel()
+{
+    saveCache(localRootPath());
 }
 
 int QWebdavModel::rowCount(const QModelIndex &parent) const
@@ -30,6 +35,7 @@ void QWebdavModel::setFolder(const QString& path)
     if(m_folder == path || !createPath(path)) return;
 
     m_folder = path;
+    qDebug() << "QWebdavModel | Set folder:" << path;
     QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
     emit folderChanged();
 }
@@ -102,7 +108,8 @@ void QWebdavModel::classBegin()
 
 void QWebdavModel::componentComplete()
 {
-    cd(homePath());
+    //loadCache(localRootPath());
+    QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
 }
 
 void QWebdavModel::replyFinished()
@@ -197,7 +204,8 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
 
 QWebdavUrlInfo* QWebdavModel::findItem(const QString& path) const
 {
-    return m_rootItem->findFirst<QWebdavUrlInfo>(path, "name");
+    QWebdavUrlInfo* item = m_rootItem->findFirst<QWebdavUrlInfo>(path, "name");
+    return item == 0 ? dynamic_cast<QWebdavUrlInfo*>(m_rootItem) : item;
 }
 
  QString QWebdavModel::rectifyPath(const QString& path)
@@ -221,6 +229,39 @@ void QWebdavModel::setLocalRootPath(const QString& path)
     if(!QDir().mkpath(path)) {
         qDebug() << "QWebdavModel | Failed to create local dir:" << path;
     }
+}
+
+bool QWebdavModel::loadCache(const QString &path)
+{
+    qDebug() << "QWebdavModel | Trying to load cache file from:" << path;
+
+    QFile cacheFile(path+".xmlCache");
+    if(!cacheFile.open(QFile::ReadOnly)) {
+        qDebug() << "QWebdavModel | Cache file" << cacheFile.fileName() << "not available";
+        return false;
+    }
+
+    QXmlStreamReader reader(&cacheFile);
+    m_rootItem->removeChildren(0, m_rootItem->childCount());
+    reader.readNextStartElement();
+    if(m_rootItem->readFromXml(reader)) {
+        qDebug() << "QWebdavModel | Cache file succesfully loaded.";
+        return true;
+    }
+    return false;
+}
+
+bool QWebdavModel::saveCache(const QString &path)
+{
+    QFile cacheFile(path+".xmlCache");
+    if(!cacheFile.open(QFile::WriteOnly)) {
+        qDebug() << "QWebdavModel | Cache file" << cacheFile.fileName() << "not writable.";
+        return false;
+    }
+
+    QXmlStreamWriter writer(&cacheFile);
+    writer.setAutoFormatting(true);
+    return m_rootItem->writeToXml(writer);
 }
 
 void QWebdavModel::rename(const QString& path, const QString& to)
@@ -340,9 +381,10 @@ void QWebdavModel::cd(const QString& dir)
 
 void QWebdavModel::refresh()
 {
+    qDebug() << "QWebdavModel | Current folder:" << folder();
     qDebug() << "QWebdavModel | List url:" << baseUrl() + folder();
     QNetworkReply* reply = m_webdavManager.list(baseUrl() + folder());
-    currentItem()->setReply(reply);
+    findItem(folder())->setReply(reply);
     connectReply(reply);
 
     m_refreshFlag = false;

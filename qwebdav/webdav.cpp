@@ -88,15 +88,16 @@ QNetworkReply* QWebdav::list(const QString& path)
     QWebdav::PropNames query;
     QStringList props;
 
+    //skip some props for faster loading
     props << "creationdate";
     props << "getcontentlength";
-    props << "displayname";
-    props << "source";
-    props << "getcontentlanguage";
+    //props << "displayname";
+    //props << "source";
+    //props << "getcontentlanguage";
     props << "getcontenttype";
     props << "executable";
     props << "getlastmodified";
-    props << "getetag";
+    //props << "getetag";
     props << "resourcetype";
 
     query["DAV:"] = props;

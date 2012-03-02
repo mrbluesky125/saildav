@@ -32,6 +32,7 @@ class QWebdavModel : public AbstractTreeModel, public QDeclarativeParserStatus
 
 public:
     QWebdavModel(QObject *parent = 0);
+    ~QWebdavModel();
 
     enum Roles { FileNameRole = Qt::UserRole+1, FilePathRole = Qt::UserRole+2 };
 
@@ -75,6 +76,9 @@ protected:
 
     QString localRootPath() const;
     void setLocalRootPath(const QString& path);
+
+    bool loadCache(const QString& path);
+    bool saveCache(const QString& path);
 
 protected slots:
     void replyFinished();

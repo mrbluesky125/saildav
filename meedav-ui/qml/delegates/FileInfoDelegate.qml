@@ -6,7 +6,7 @@ Item {
     width: parent.width
     height: 80
 
-    property bool dir: root.ListView.view.model.isFolder(index)
+    property bool dir: ListView.view.model.isFolder(index)
 
     function sizeString() {
         if(size > 1024*1024*1024)
@@ -54,6 +54,15 @@ Item {
         }
     }
 
+    ToolIcon {
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: parent.right
+        anchors.rightMargin: 6
+        iconId: "transfer-upload"
+        visible: !dir
+        onClicked: root.ListView.view.upload(filePath)
+    }
+
     MouseArea {
         anchors.fill: parent
         onPressed: background.opacity = 1.0;
@@ -61,11 +70,6 @@ Item {
         onPositionChanged: background.opacity = 0.0;
         onClicked: {
             if(dir) root.ListView.view.model.folder = filePath;
-        }
-        onPressAndHold: {
-            if(dir) return;
-            uploadMenu.filePath = filePath
-            uploadMenu.open();
         }
     }
 }

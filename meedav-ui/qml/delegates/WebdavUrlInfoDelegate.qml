@@ -97,19 +97,7 @@ Item {
         onPressed: background.opacity = 1.0;
         onReleased: background.opacity = 0.0;
         onPositionChanged: background.opacity = 0.0;
-        onClicked: {
-            if(busy) return;
-            if(dir) webdavClient.cd(name);
-        }
-        onPressAndHold: {
-            if(busy) {
-                busyMenu.item = root.ListView.view.model[index]
-                busyMenu.open();
-            }
-            else {
-                itemMenu.item = root.ListView.view.model[index]
-                itemMenu.open();
-            }
-        }
+        onClicked: root.ListView.view.delegateClicked(index)
+        onPressAndHold: root.ListView.view.delegatePressAndHold(index)
     }
 }

@@ -13,13 +13,11 @@ include(qxmlstreambase/qxmlstreambase.pri)
 HEADERS += webdav.h \
     webdavfileinfo.h \
     webdavmodel.h \
-    webdavplugin.h \
-    webdavfileinfostreamer.h
+    webdavplugin.h
 
 SOURCES += webdav.cpp \
     webdavfileinfo.cpp \
-    webdavmodel.cpp \
-    webdavfileinfostreamer.cpp
+    webdavmodel.cpp
 
 OTHER_FILES += qmldir
 

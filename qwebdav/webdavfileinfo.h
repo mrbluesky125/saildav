@@ -60,9 +60,6 @@ class QWebdavUrlInfo : public AbstractTreeItem
     Q_PROPERTY(bool busy READ isBusy NOTIFY busyChanged)
 
 private:
-    QDomNode m_node;
-    QWebdav::PropValues m_properties;
-
     bool m_dir;
     bool m_file;
     QString m_group;
@@ -157,6 +154,9 @@ protected:
     QDateTime parseDateTime(const QString& input, const QString& type);
     void davParsePropstats(const QString& path, const QDomNodeList& propstat);
 
+    virtual void readXmlTags(QXmlStreamReader& reader);
+    virtual void writeXmlTags(QXmlStreamWriter& writer) const;
+
 signals:
     void dirChanged(bool);
     void fileChanged(bool);
@@ -182,5 +182,16 @@ signals:
 };
 
 QML_DECLARE_TYPE(QWebdavUrlInfo)
+
+inline QDebug operator<<(QDebug dbg, const QWebdavUrlInfo &item)
+{
+    dbg.nospace() << "(" << item.name() << ", ";
+    foreach(AbstractTreeItem* child, item.childList()) {
+        dbg.nospace() << *dynamic_cast<QWebdavUrlInfo*>(child);
+    }
+    dbg.nospace() << ")";
+
+    return dbg.space();
+}
 
 #endif /* QWEBDAV_URL_INFO_H */

@@ -11,7 +11,8 @@ Item {
         anchors.right: sectionText.left
         anchors.verticalCenter: parent.verticalCenter
         anchors.margins: 12
-        source: "image://theme/meegotouch-separator-inverted-background-horizontal"
+        height: 2
+        source: "image://theme/meegotouch-separator-background-horizontal"
     }
 
     Text {

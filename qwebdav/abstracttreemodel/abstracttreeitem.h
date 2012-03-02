@@ -28,7 +28,7 @@ public:
     virtual ~AbstractTreeItem();
 
     AbstractTreeItem* child(int number) const;
-    QList<AbstractTreeItem*> childList();
+    QList<AbstractTreeItem*> childList() const;
 
     QDeclarativeListProperty<AbstractTreeItem> childs();
     static void append(QDeclarativeListProperty<AbstractTreeItem>* list, AbstractTreeItem* item);
@@ -54,6 +54,9 @@ public:
     virtual Qt::ItemFlags flags() const { return Qt::ItemIsEnabled | Qt::ItemIsSelectable; }
     virtual int columnCount() const { return 1; }
 
+    bool readFromXml(QXmlStreamReader& reader);
+    bool writeToXml(QXmlStreamWriter& writer) const;
+
     template<typename T>
     inline T* findFirst(QVariant criterion, const char* propertyName) const
     { return findItem<T>(this, criterion, propertyName); }
@@ -73,6 +76,9 @@ public:
 protected:
     QList<AbstractTreeItem*> m_childItems;	///<Child item list
     AbstractTreeItem* m_parentItem;		///<Parent item
+
+    virtual void readXmlTags(QXmlStreamReader& reader);
+    virtual void writeXmlTags(QXmlStreamWriter& writer) const;
 
 signals:
     void parentItemChanged(AbstractTreeItem*);

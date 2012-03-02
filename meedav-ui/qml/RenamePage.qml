@@ -7,7 +7,7 @@ import Webdav 1.0
 Page {
     id: root
 
-    property WebdavFileInfo item
+    property WebdavModel model
 
     tools: topLevelTools
 
@@ -25,18 +25,6 @@ Page {
         spacing: 12
 
         Label {
-            text: qsTr("Current name")
-        }
-
-        TextField {
-            id: currentField
-            anchors.left: parent.left
-            anchors.right: parent.right
-            enabled: false
-            text: item.displayName
-        }
-
-        Label {
             text: qsTr("Rename to")
         }
 
@@ -44,7 +32,7 @@ Page {
             id: inputField
             anchors.left: parent.left
             anchors.right: parent.right
-            text: item.displayName
+            text: model.currentItem.displayName
             placeholderText: qsTr("new name")
         }
 
@@ -54,7 +42,7 @@ Page {
             enabled: inputField.text != ""
             text: qsTr("Rename")
             onClicked: {
-                webdavClient.rename(item.name, inputField.text);
+                model.rename(model.folder, inputField.text);
                 pageStack.pop();
             }
         }

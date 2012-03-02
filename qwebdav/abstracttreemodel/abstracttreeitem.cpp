@@ -35,7 +35,7 @@ QDeclarativeListProperty<AbstractTreeItem> AbstractTreeItem::childs()
 }
 
 ///\brief returns the child list
-QList<AbstractTreeItem*> AbstractTreeItem::childList()
+QList<AbstractTreeItem*> AbstractTreeItem::childList() const
 {
     return m_childItems;
 }
@@ -199,6 +199,55 @@ AbstractTreeItem* AbstractTreeItem::takeChild(int position)
     return item;
 }
 
+bool AbstractTreeItem::readFromXml(QXmlStreamReader &reader)
+{
+    //check if reader is at a start token
+    if(!reader.isStartElement() || reader.name() != "item") {
+        reader.raiseError("Reader is at a wrong token.");
+        return false;
+    }
+
+    //read all child xml tags until the end token of the current node is reached
+    while(reader.readNextStartElement()) {
+        readXmlTags(reader);
+    }
+
+    //check for errors
+    if(reader.error() != QXmlStreamReader::NoError) {
+        return false;
+    }
+
+    return true;
+}
+
+bool AbstractTreeItem::writeToXml(QXmlStreamWriter &writer) const
+{
+    writer.writeStartElement("item");
+    writer.writeAttribute("objectName", objectName());
+    writeXmlTags(writer);
+    writer.writeEndElement();
+    return true;
+}
+
+void AbstractTreeItem::readXmlTags(QXmlStreamReader &reader)
+{
+    //create a base type item if tag was not handled by derived class
+    if( reader.name() == "item" ) {
+        QScopedPointer<AbstractTreeItem> item(new AbstractTreeItem());
+        if(item->readFromXml(reader)) addChild(item.take());
+    }
+    else {
+        qWarning() << "AbstractTreeItem | Unknown XML element skipped:" << reader.name();
+        reader.skipCurrentElement();
+    }
+}
+
+void AbstractTreeItem::writeXmlTags(QXmlStreamWriter &writer) const
+{
+    foreach(AbstractTreeItem* item, childList())  {
+        item->writeToXml(writer);
+    }
+}
 
 void AbstractTreeItem::append(QDeclarativeListProperty<AbstractTreeItem> *list, AbstractTreeItem *item)
 {

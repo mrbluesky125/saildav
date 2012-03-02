@@ -48,6 +48,7 @@ Rectangle {
         id: bottomLine
         anchors.bottom: parent.bottom
         width: parent.width
-        source: "image://theme/meegotouch-separator-inverted-background-horizontal"
+        height: 2
+        source: "image://theme/meegotouch-separator-background-horizontal"
     }
 }
