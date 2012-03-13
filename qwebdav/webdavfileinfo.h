@@ -89,8 +89,6 @@ public:
     QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent = 0);
     virtual ~QWebdavUrlInfo();
 
-    bool operator <(const QWebdavUrlInfo& other) const;
-
 public:
     void setDir(bool b);
     void setFile(bool b);
@@ -132,7 +130,6 @@ public:
     bool isBusy() const;
 
     void setReply(QNetworkReply*);
-    void sort(Qt::SortOrder order = Qt::AscendingOrder);
 
 public slots:
     void abort();

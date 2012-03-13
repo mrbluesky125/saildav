@@ -224,30 +224,30 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
 
 void QWebdavUrlInfo::readXmlTags(QXmlStreamReader &reader)
 {
-    //while (reader.readNextStartElement()) {
-        if( reader.name() == "dir" ) setDir(reader.readElementText() == "true");
-        else if ( reader.name() == "file" ) setFile(reader.readElementText() == "true");
-        else if ( reader.name() == "group" ) setGroup(reader.readElementText());
-        else if ( reader.name() == "lastModified" ) setLastModified(reader.readElementText());
-        else if ( reader.name() == "name" ) setName(reader.readElementText());
-        else if ( reader.name() == "owner" ) setOwner(reader.readElementText());
-        else if ( reader.name() == "permissions" ) setPermissions(reader.readElementText().toInt());
-        else if ( reader.name() == "readable" ) setReadable(reader.readElementText() == "true");
-        else if ( reader.name() == "size" ) setSize(reader.readElementText().toULongLong());
-        else if ( reader.name() == "symLink" ) setSymLink(reader.readElementText() == "true");
-        else if ( reader.name() == "writable" ) setWritable(reader.readElementText() == "true");
-        else if ( reader.name() == "createdAt" ) setCreatedAt(reader.readElementText());
-        else if ( reader.name() == "displayName" ) setDisplayName(reader.readElementText());
-        else if ( reader.name() == "source" ) setSource(reader.readElementText());
-        else if ( reader.name() == "contentLanguage" ) setContentLanguage(reader.readElementText());
-        else if ( reader.name() == "entitytag" ) setEntitytag(reader.readElementText());
-        else if ( reader.name() == "mimeType" ) setMimeType(reader.readElementText());
-        else if ( reader.name() == "item" ) {
-            QScopedPointer<QWebdavUrlInfo> item(new QWebdavUrlInfo());
-            if(item->readFromXml(reader)) addChild(item.take());
-        }
-        else AbstractTreeItem::readXmlTags(reader);
-    //}
+
+    if( reader.name() == "dir" ) setDir(reader.readElementText() == "true");
+    else if ( reader.name() == "file" ) setFile(reader.readElementText() == "true");
+    else if ( reader.name() == "group" ) setGroup(reader.readElementText());
+    else if ( reader.name() == "lastModified" ) setLastModified(reader.readElementText());
+    else if ( reader.name() == "name" ) setName(reader.readElementText());
+    else if ( reader.name() == "owner" ) setOwner(reader.readElementText());
+    else if ( reader.name() == "permissions" ) setPermissions(reader.readElementText().toInt());
+    else if ( reader.name() == "readable" ) setReadable(reader.readElementText() == "true");
+    else if ( reader.name() == "size" ) setSize(reader.readElementText().toULongLong());
+    else if ( reader.name() == "symLink" ) setSymLink(reader.readElementText() == "true");
+    else if ( reader.name() == "writable" ) setWritable(reader.readElementText() == "true");
+    else if ( reader.name() == "createdAt" ) setCreatedAt(reader.readElementText());
+    else if ( reader.name() == "displayName" ) setDisplayName(reader.readElementText());
+    else if ( reader.name() == "source" ) setSource(reader.readElementText());
+    else if ( reader.name() == "contentLanguage" ) setContentLanguage(reader.readElementText());
+    else if ( reader.name() == "entitytag" ) setEntitytag(reader.readElementText());
+    else if ( reader.name() == "mimeType" ) setMimeType(reader.readElementText());
+    else if ( reader.name() == "item" ) {
+        QScopedPointer<QWebdavUrlInfo> item(new QWebdavUrlInfo());
+        if(item->readFromXml(reader)) addChild(item.take());
+    }
+    else AbstractTreeItem::readXmlTags(reader);
+
 }
 
 void QWebdavUrlInfo::writeXmlTags(QXmlStreamWriter &writer) const
@@ -558,8 +558,6 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
     foreach(AbstractTreeItem* item, oldItems) {
         removeChild(item);
     }
-
-    sort();
 }
 
 void QWebdavUrlInfo::setResponse(const QDomElement& dom)
@@ -574,8 +572,8 @@ void QWebdavUrlInfo::setResponse(const QDomElement& dom)
 
 void QWebdavUrlInfo::setReply(QNetworkReply* reply)
 {
-    if(m_reply != 0) {
-        qWarning() << "QWebdavUrlInfo | Reply already set.";
+    if(busy()) {
+        qWarning() << "QWebdavUrlInfo | Urlinfo is busy.";
         return;
     }
 
@@ -588,25 +586,6 @@ void QWebdavUrlInfo::setReply(QNetworkReply* reply)
     connect(m_reply, SIGNAL(uploadProgress(qint64,qint64)), this, SLOT(uploadProgress(qint64,qint64)));
 }
 
-bool lessThan(AbstractTreeItem* item1, AbstractTreeItem* item2)
-{
-    return (*static_cast<QWebdavUrlInfo*>(item1)) < (*static_cast<QWebdavUrlInfo*>(item2));
-}
-
-bool QWebdavUrlInfo::operator <(const QWebdavUrlInfo &other) const
-{
-    if(isDir() != other.isDir())
-        return isDir();
-
-    return displayName().toLower() < other.displayName().toLower();
-}
-
-void QWebdavUrlInfo::sort(Qt::SortOrder order)
-{
-    qSort(m_childItems.begin(), m_childItems.end(), lessThan);
-    emit childsChanged();
-}
-
 void QWebdavUrlInfo::abort()
 {
     if(m_reply == 0) return;
@@ -617,6 +596,7 @@ void QWebdavUrlInfo::finished()
 {
     QString contentType = m_reply->header(QNetworkRequest::ContentTypeHeader).toString();
     qDebug() << "QWebdavUrlInfo | Reply finished. Content header:" << contentType;
+    setBusy(false);
 
     if(m_reply->error() != QNetworkReply::NoError) {
         qDebug() << "QWebdavUrlInfo | Reply has error. Error:" << m_reply->errorString() << "Code:" << m_reply->error();
@@ -628,16 +608,16 @@ void QWebdavUrlInfo::finished()
         }
 
         if(contentType.contains("xml")) {
-            //qDebug() << data;
+            qDebug() << data;
             setMultiResponse(data);
         }
-        else if(isFile()) {
+        else if(isFile() && progress() >= 1.0) {
             qDebug() << "QWebdavUrlInfo | Download of" << displayName() << "finished.";
         }
     }
 
-    setBusy(false);
-    //setProgress(0.0);
+
+    setProgress(0.0);
     m_reply->deleteLater();
     m_reply = 0;
 }

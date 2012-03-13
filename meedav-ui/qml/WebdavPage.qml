@@ -4,6 +4,7 @@ import com.nokia.extras 1.0
 
 import "components"
 import "delegates"
+import "js/core.js" as Core
 
 import Webdav 1.0
 
@@ -43,7 +44,7 @@ Page {
             }
             MenuItem {
                 text: qsTr("Account")
-                onClicked: pageStack.replace(Qt.resolvedUrl("AccountPage.qml"));
+                onClicked: pageStack.replace(Qt.resolvedUrl("AccountPage.qml"), { account: Core.getAccount() });
             }
             MenuItem {
                 text: qsTr("About")
@@ -133,11 +134,10 @@ Page {
         section.delegate: SectionDelegate { }
 
         delegate: WebdavUrlInfoDelegate { }
-        model: webdavClient.currentItem.childs
+        model: webdavClient
 
         function delegateClicked(index) {
-            itemMenu.item = model[index];
-            itemMenu.open();
+            model.folder = model[index].name;
         }
 
         function delegatePressAndHold(index) {
@@ -157,4 +157,6 @@ Page {
     ScrollDecorator {
         flickableItem: itemView
     }
+
+    //Component.onCompleted: webdavClient.folder = webdavClient.homePath
 }

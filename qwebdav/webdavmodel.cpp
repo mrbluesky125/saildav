@@ -7,6 +7,11 @@ QWebdavModel::QWebdavModel(QObject *parent) : AbstractTreeModel(new QWebdavUrlIn
   ,m_localRootPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/MyDocs/meedav/")
   ,m_refreshFlag(false)
 {
+    QHash<int, QByteArray> roles = roleNames();
+    roles[FileNameRole] = "name";
+    roles[FilePathRole] = "displayPath";
+    setRoleNames(roles);
+
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
 }
 
@@ -17,11 +22,13 @@ QWebdavModel::~QWebdavModel()
 
 int QWebdavModel::rowCount(const QModelIndex &parent) const
 {
+    qDebug() << "DEBUG--rowCount---" << currentItem()->name();
     return currentItem()->childCount();
 }
 
 QVariant QWebdavModel::data(const QModelIndex &index, int role) const
 {
+    qDebug() << "DEBUG--data---" << currentItem()->name();
     return AbstractTreeModel::data( this->index(index.row(), 0, getIndex(currentItem())), role );
 }
 
@@ -109,7 +116,8 @@ void QWebdavModel::classBegin()
 void QWebdavModel::componentComplete()
 {
     //loadCache(localRootPath());
-    QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
+    cd(homePath());
+    //QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
 }
 
 void QWebdavModel::replyFinished()
@@ -198,6 +206,11 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
     findItem(path)->addChild(urlInfoItem);
 
     qDebug() << "QWebdavModel | Create folder:" << dirName;
+
+    qDebug() << "QWebdavModel | Create local dir:" << urlInfoItem->name();
+    if(!QDir().mkpath(urlInfoItem->name())) {
+        qDebug() << "QWebdavModel | Failed to create local dir:" << urlInfoItem->name();
+    }
 
     return urlInfoItem->name();
 }
@@ -360,8 +373,8 @@ void QWebdavModel::download(const QString& path)
         return;
     }
 
-    QString localPath = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation) + "/" + currentItem->displayName();
-    QScopedPointer<QFile> file(new QFile(localPath));
+    QString localPath = localRootPath() + parentFolder(currentItem->name());
+    QScopedPointer<QFile> file(new QFile(localPath + currentItem->displayName()));
     if(!file->open(QFile::WriteOnly)) {
         qDebug() << "QWebdavModel | Unable to write to local file:" << localPath;
         return;

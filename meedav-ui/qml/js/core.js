@@ -80,5 +80,5 @@ function printObject(o)
 
 function defaultAccount()
 {
-    return { url: "", username: "", password: "" }
+    return { url: "http://", username: "", password: "" }
 }

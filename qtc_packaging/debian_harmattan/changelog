@@ -1,4 +1,4 @@
-meedav (0.1.3) unstable; urgency=low
+meedav (0.1.4) unstable; urgency=low
 
   * Bugfix: Crash on path that consists only of a url
 

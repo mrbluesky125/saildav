@@ -15,6 +15,7 @@ AbstractTreeItem::AbstractTreeItem(AbstractTreeItem* parent) : QObject(parent)
         m_parentItem->insertChild(m_parentItem->childCount(), this);
 }
 
+///\brief Destruktor. Deletes all childs.
 AbstractTreeItem::~AbstractTreeItem()
 {
     qDeleteAll(m_childItems);
@@ -42,14 +43,14 @@ QList<AbstractTreeItem*> AbstractTreeItem::childList() const
 
 ///\brief Total number of child items
 ///\return Number of child items
-unsigned int AbstractTreeItem::childCount() const 
+int AbstractTreeItem::childCount() const 
 {
     return m_childItems.count();
 }
 
 ///\brief Returns the index of the item in its parent child list
 ///\return Index of the item in its parent child list
-unsigned int AbstractTreeItem::childNumber() const 
+int AbstractTreeItem::childNumber() const 
 {
     if (m_parentItem != 0)
         return m_parentItem->m_childItems.indexOf(const_cast<AbstractTreeItem*>(this));
@@ -59,7 +60,7 @@ unsigned int AbstractTreeItem::childNumber() const
 
 ///\brief returns the total number of children (complete tree branch)
 ///\return total number of items in this branch of the tree
-unsigned int AbstractTreeItem::itemCount() const 
+int AbstractTreeItem::itemCount() const 
 {
     unsigned int itemCount = childCount();
     foreach(AbstractTreeItem* item, m_childItems) {
@@ -130,8 +131,7 @@ void AbstractTreeItem::setParentItem(AbstractTreeItem* parent)
         m_parentItem->removeChild(this);
 
     m_parentItem = parent;
-    emit parentItemChanged(this->parentItem());
-    emit indentChanged(indent());
+    emit parentItemChanged();
 }
 
 ///\brief Returns the indent of the item, which is also the nesting depth of the item in the tree
@@ -199,11 +199,14 @@ AbstractTreeItem* AbstractTreeItem::takeChild(int position)
     return item;
 }
 
+///\brief Reads the item from the given stream reader.
+///\param reader The xml stream reader
+///\remarks The stream reader has to be open and the current element of it has to be the item start tag
 bool AbstractTreeItem::readFromXml(QXmlStreamReader &reader)
 {
     //check if reader is at a start token
     if(!reader.isStartElement() || reader.name() != "item") {
-        reader.raiseError("Reader is at a wrong token.");
+        reader.raiseError("Reader is at a wrong token: " + reader.tokenString());
         return false;
     }
 
@@ -214,24 +217,56 @@ bool AbstractTreeItem::readFromXml(QXmlStreamReader &reader)
 
     //check for errors
     if(reader.error() != QXmlStreamReader::NoError) {
+        qWarning() << "AbstractTreeItem |" << QObject::tr("Parsing of the item failed. Error:") << reader.errorString();
         return false;
     }
 
     return true;
 }
 
+///\brief Writes the item to the given stream writer
+///\param reader The xml stream writer
 bool AbstractTreeItem::writeToXml(QXmlStreamWriter &writer) const
 {
     writer.writeStartElement("item");
-    writer.writeAttribute("objectName", objectName());
+    writeItemAttributes(writer);
     writeXmlTags(writer);
     writer.writeEndElement();
     return true;
 }
 
+///\brief Comparsion function used for sorting
+///Has to be reimplemented if custom QVariant types are used.
+bool AbstractTreeItem::lessThan(const QVariant& left, const QVariant& right)
+{
+    if(left.type() == QVariant::Int)
+        return left.toInt() < right.toInt();
+    else if(left.type() == QVariant::UInt)
+        return left.toUInt() < right.toUInt();
+    else if(left.type() == QVariant::LongLong)
+        return left.toLongLong() < right.toLongLong();
+    else if(left.type() == QVariant::Double)
+        return left.toDouble() < right.toDouble();
+    else if(left.type() == QVariant::Char)
+        return left.toChar() < right.toChar();
+    else if(left.type() == QVariant::Date)
+        return left.toDate() < right.toDate();
+    else if(left.type() == QVariant::Time)
+        return left.toTime() < right.toTime();
+    else if(left.type() == QVariant::DateTime)
+        return left.toDateTime() < right.toDateTime();
+    else if(left.type() == QVariant::String)
+        return left.toString() < right.toString();
+    else
+        return false;
+}
+
+///\brief Reads the child tags of the item
+///\remarks Derived classes has to call this function in the else-branch of their if-else tree
+///\note Note that derived classes has to call the implementation of their base class, in order to write all tags, which isn't necessarily this class
 void AbstractTreeItem::readXmlTags(QXmlStreamReader &reader)
 {
-    //create a base type item if tag was not handled by derived class
+    //create a base type item if the 'item' tag was not handled by derived class
     if( reader.name() == "item" ) {
         QScopedPointer<AbstractTreeItem> item(new AbstractTreeItem());
         if(item->readFromXml(reader)) addChild(item.take());
@@ -242,12 +277,24 @@ void AbstractTreeItem::readXmlTags(QXmlStreamReader &reader)
     }
 }
 
+///\brief Writes the child tags of the item
+///\remarks Derived classes has to call this function in their reimplemented version of this function
 void AbstractTreeItem::writeXmlTags(QXmlStreamWriter &writer) const
 {
     foreach(AbstractTreeItem* item, childList())  {
         item->writeToXml(writer);
     }
 }
+
+
+///\brief Writes attributes of the item. This function is called right after the creation of the item root tag.
+///Reimplement this function to write your own item attributes
+void AbstractTreeItem::writeItemAttributes(QXmlStreamWriter& writer) const
+{
+    writer.writeAttribute("objectName", objectName());
+}
+
+///----------------------------------------------------------QML-List Interface-----------------------------------------------------------------//
 
 void AbstractTreeItem::append(QDeclarativeListProperty<AbstractTreeItem> *list, AbstractTreeItem *item)
 {

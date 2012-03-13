@@ -19,7 +19,7 @@ AbstractTreeModel::~AbstractTreeModel()
 AbstractTreeItem* AbstractTreeModel::getItem(const QModelIndex &index) const {
     if (index.isValid()) {
         AbstractTreeItem* item = static_cast<AbstractTreeItem*>(index.internalPointer());
-        if (item) return item;
+        if (item != 0) return item;
     }
     return m_rootItem;
 }
@@ -95,16 +95,14 @@ bool AbstractTreeModel::insertRows(int row, const QList<AbstractTreeItem*>& item
 bool AbstractTreeModel::moveRow(int from, int to, const QModelIndex& parent)
 {
     AbstractTreeItem* parentItem = getItem(parent);
-    bool success;
 
-    if(from < 0 || to < 0 || from > parentItem->childNumber() || to > parentItem->childNumber())
+    if(from < 0 || to < 0 || from > parentItem->childCount() || to > parentItem->childCount())
         return false;
 
-    beginMoveRows(parent, from, from, parent, to);
-    success = parentItem->moveChild(from, to);
-    endMoveRows();
+    AbstractTreeItem* item = takeRow(from, parent);
+    insertRow(to, item, parent);
 
-    return success;
+    return true;
 }
 
 ///\brief Returns the parent index of a given index
@@ -169,6 +167,17 @@ int AbstractTreeModel::rowCount(const QModelIndex &parent) const
     return parentItem->childCount();
 }
 
+AbstractTreeItem* AbstractTreeModel::takeRow(int row, const QModelIndex &parent)
+{
+    AbstractTreeItem* parentItem = getItem(parent);
+
+    beginRemoveRows(parent, row, row);
+    AbstractTreeItem* item = parentItem->takeChild(row);
+    endRemoveRows();
+
+    return item;
+}
+
 ///\brief Standard implementation
 int AbstractTreeModel::columnCount(const QModelIndex& parent) const 
 {
@@ -219,4 +228,36 @@ Qt::ItemFlags AbstractTreeModel::flags(const QModelIndex &index) const
 QVariant AbstractTreeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     return QVariant();
+}
+
+///\brief Sorts the model by column in the given order.
+///\param column The column that is used for sorting
+///\param order Sorting order (ascending/descending)
+void AbstractTreeModel::sort(int column, Qt::SortOrder order)
+{
+    sort("title", order);
+}
+
+///\brief Sorts the model by column in the given order.
+///\param propertyName The column that is used for sorting
+///\param order Sorting order (ascending/descending)
+void AbstractTreeModel::sort(const char* propertyName, Qt::SortOrder order, const QModelIndex &index)
+{
+    if(QString(propertyName).isEmpty())
+        return;
+
+    AbstractTreeItem* item = getItem(index);
+
+    //bubblesort child list
+    for(int n=item->childCount(); n>1; n--) {
+        for(int i=0; i<n-1; i++) {
+            if(item->lessThan(item->child(i)->property(propertyName), item->child(i+1)->property(propertyName)) != (order == Qt::DescendingOrder)) {
+                moveRow(i, i+1, getIndex(item));
+            }
+        }
+    }
+
+    //tell all childs to sort their child list
+    for(int i = 0; i<item->childCount(); i++)
+        sort(propertyName, order, getIndex(item->child(i)));
 }
