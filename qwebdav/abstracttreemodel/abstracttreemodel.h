@@ -34,9 +34,9 @@ public:
     bool moveRow(int from, int to, const QModelIndex& parent = QModelIndex());
     bool removeRow(int row, const QModelIndex &parent = QModelIndex());
     bool removeRows(int row, int rows, const QModelIndex& parent = QModelIndex());
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
     AbstractTreeItem* takeRow(int row, const QModelIndex &parent = QModelIndex());
 
+	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);

@@ -88,11 +88,11 @@ public:
     ///\tparam T The type of the root item. Could be the type of a derived class
     ///\returns Returns a pointer to the root item or 0 if the root item couldn't be cast
     template<typename T> inline T* findRoot() const
-    { return parentItem() == 0 ? qobject_cast<T*>(const_cast<AbstractTreeItem*>(this)) : parentItem()->findRoot<T>(); }
+    { return parentItem() == 0 ? dynamic_cast<T*>(const_cast<AbstractTreeItem*>(this)) : parentItem()->findRoot<T>(); }
 
 protected:
     QList<AbstractTreeItem*> m_childItems;	///<Child item list
-    AbstractTreeItem* m_parentItem;		///<Parent item
+    AbstractTreeItem* m_parentItem;		    ///<Parent item
 
     virtual bool lessThan(const QVariant& left, const QVariant& right);
     virtual void readXmlTags(QXmlStreamReader& reader);
@@ -116,7 +116,7 @@ inline T* findItem(const AbstractTreeItem* item, QVariant criterion, const char*
 {
     //search first item
     if(item->property(propertyName) == criterion) {
-        T* foundItem = qobject_cast<T*>(const_cast<AbstractTreeItem*>(item));
+        T* foundItem = dynamic_cast<T*>(const_cast<AbstractTreeItem*>(item));
         if(foundItem != 0) return foundItem;
     }
 
@@ -147,7 +147,7 @@ inline QList<T*> findItems(const AbstractTreeItem* item, QVariant criterion, con
 
     //search first item
     if( (item->property(propertyName) == criterion) || matchAll ) {
-        T* foundItem = qobject_cast<T*>(const_cast<AbstractTreeItem*>(item));
+        T* foundItem = dynamic_cast<T*>(const_cast<AbstractTreeItem*>(item));
         if(foundItem != 0) items.append( foundItem);
     }
 

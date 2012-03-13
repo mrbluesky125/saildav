@@ -167,6 +167,10 @@ int AbstractTreeModel::rowCount(const QModelIndex &parent) const
     return parentItem->childCount();
 }
 
+///\brief Takes the row at the position 'row' from the given parent
+///\param parent The parent index from wich the row is taken
+///\param row The row that is removed
+///\return The removed item at the row
 AbstractTreeItem* AbstractTreeModel::takeRow(int row, const QModelIndex &parent)
 {
     AbstractTreeItem* parentItem = getItem(parent);
