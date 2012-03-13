@@ -572,8 +572,8 @@ void QWebdavUrlInfo::setResponse(const QDomElement& dom)
 
 void QWebdavUrlInfo::setReply(QNetworkReply* reply)
 {
-    if(busy()) {
-        qWarning() << "QWebdavUrlInfo | Urlinfo is busy.";
+    if(isBusy()) {
+        qWarning() << "QWebdavUrlInfo | QWebdavUrlInfo is busy.";
         return;
     }
 

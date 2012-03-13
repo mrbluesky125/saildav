@@ -8,8 +8,8 @@ QWebdavModel::QWebdavModel(QObject *parent) : AbstractTreeModel(new QWebdavUrlIn
   ,m_refreshFlag(false)
 {
     QHash<int, QByteArray> roles = roleNames();
-    roles[FileNameRole] = "name";
-    roles[FilePathRole] = "displayPath";
+    roles[FileNameRole] = "displayName";
+    roles[FilePathRole] = "name";
     setRoleNames(roles);
 
     connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
@@ -22,13 +22,11 @@ QWebdavModel::~QWebdavModel()
 
 int QWebdavModel::rowCount(const QModelIndex &parent) const
 {
-    qDebug() << "DEBUG--rowCount---" << currentItem()->name();
     return currentItem()->childCount();
 }
 
 QVariant QWebdavModel::data(const QModelIndex &index, int role) const
 {
-    qDebug() << "DEBUG--data---" << currentItem()->name();
     return AbstractTreeModel::data( this->index(index.row(), 0, getIndex(currentItem())), role );
 }
 
@@ -124,6 +122,9 @@ void QWebdavModel::replyFinished()
 {
     if(m_refreshFlag == true)
         QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
+
+    beginResetModel();
+    endResetModel();
 }
 
 void QWebdavModel::replyError(QNetworkReply::NetworkError error)
@@ -161,6 +162,9 @@ QString QWebdavModel::parentFolder(const QString& path) const
 
 bool QWebdavModel::createPath(const QString& path)
 {
+    if(path == "/")
+        return true;
+
     qDebug() << "QWebdavModel | Create path:" << path;
 
     if(!path.startsWith('/')) {
@@ -170,8 +174,10 @@ bool QWebdavModel::createPath(const QString& path)
 
     //check for existing item
     QWebdavUrlInfo* currentItem = findItem(path);
-    if(currentItem != 0)
+    if(currentItem != m_rootItem) {
+        qDebug() << "QWebdavModel | Path found:" << path;
         return true;
+    }
 
     //step through the path parts
     QStringList dirNames = path.split('/', QString::SkipEmptyParts);
@@ -183,18 +189,25 @@ bool QWebdavModel::createPath(const QString& path)
         else
             currentPath = createFolder(currentPath, dir);
     }
+
+    qDebug() << "QWebdavModel | Path created:" << path;
     return true;
 }
 
 QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
 {
-    if(path.isEmpty() || dirName.isEmpty()) return path;
+    qDebug() << "QWebdavModel | Create folder:" << path;
+
+    if(path.isEmpty() || dirName.isEmpty())
+        return path;
 
     //search
     foreach(AbstractTreeItem* item, findItem(path)->childList()) {
         QWebdavUrlInfo* urlInfoItem = static_cast<QWebdavUrlInfo*>(item);
-        if(urlInfoItem->name().endsWith(dirName + "/"))
+        if(urlInfoItem->name().endsWith(dirName + "/")) {
+            qDebug() << "QWebdavModel | Folder found:" << dirName << "in path:" << path;
             return urlInfoItem->name();
+        }
     }
 
     //create
@@ -203,15 +216,16 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
     urlInfoItem->setDir(true);
     urlInfoItem->setFile(false);
     urlInfoItem->setLastModified(QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm"));
-    findItem(path)->addChild(urlInfoItem);
 
-    qDebug() << "QWebdavModel | Create folder:" << dirName;
+    QModelIndex parentIndex = getIndex(findItem(path));
+    insertRow(0, urlInfoItem, parentIndex);
 
     qDebug() << "QWebdavModel | Create local dir:" << urlInfoItem->name();
-    if(!QDir().mkpath(urlInfoItem->name())) {
+    if(!QDir().mkpath(localRootPath() + urlInfoItem->name())) {
         qDebug() << "QWebdavModel | Failed to create local dir:" << urlInfoItem->name();
     }
 
+    qDebug() << "QWebdavModel | Folder created:" << dirName << "in path:" << path;
     return urlInfoItem->name();
 }
 
@@ -221,8 +235,8 @@ QWebdavUrlInfo* QWebdavModel::findItem(const QString& path) const
     return item == 0 ? dynamic_cast<QWebdavUrlInfo*>(m_rootItem) : item;
 }
 
- QString QWebdavModel::rectifyPath(const QString& path)
- {
+QString QWebdavModel::rectifyPath(const QString& path)
+{
     QString rectified = path;
     rectified = rectified.startsWith("/") ? rectified : folder() + rectified;
     rectified = rectified.endsWith("/") ? rectified : rectified + "/";
