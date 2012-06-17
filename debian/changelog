@@ -1,0 +1,5 @@
+meedav (0.0.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Philippe Coval <rzr@gna.org>  Sun, 17 Jun 2012 12:09:25 +0200
