@@ -136,6 +136,13 @@ void QWebdavModel::replyError(QNetworkReply::NetworkError error)
     emit errorChanged(reply->errorString());
 }
 
+void QWebdavModel::replySslError(const QList<QSslError> &errors)
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
+    reply->ignoreSslErrors();
+    qDebug() << "QWebdavModel | Ignored SSL errors: " << errors;
+}
+
 void QWebdavModel::authenticationRequired(QNetworkReply* reply, QAuthenticator* authenticator)
 {
     qDebug() << "QWebdavModel | Authentification for" << baseUrl() << "required.";
@@ -149,6 +156,7 @@ void QWebdavModel::connectReply(QNetworkReply* reply)
     if(reply == 0) return;
     connect(reply, SIGNAL(finished()), this, SLOT(replyFinished()));
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(sslErrors(const QList<QSslError> &)), this, SLOT(replySslError(const QList<QSslError> &)));
 }
 
 QString QWebdavModel::parentFolder(const QString& path) const

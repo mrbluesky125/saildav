@@ -83,6 +83,7 @@ protected:
 protected slots:
     void replyFinished();
     void replyError(QNetworkReply::NetworkError);
+    void replySslError(const QList<QSslError>& errors);
     void authenticationRequired(QNetworkReply* reply, QAuthenticator* authenticator);
 
 signals:
