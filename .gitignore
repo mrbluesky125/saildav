@@ -1,0 +1,11 @@
+
+/debian
+/Makefile
+/qwebdav/moc
+/qwebdav/obj
+*.deb
+*.changes
+*.user
+/meedav-ui/Makefile
+/meedav-ui/obj
+/meedav-ui/moc
