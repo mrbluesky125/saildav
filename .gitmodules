@@ -1,0 +1,6 @@
+[submodule "qwebdav/qxmlstreambase"]
+	path = qwebdav/qxmlstreambase
+	url = git@gitorious.org:reusable-modules/qxmlstreambase.git
+[submodule "qwebdav/qabstracttreemodel"]
+	path = qwebdav/qabstracttreemodel
+	url = git@gitorious.org:reusable-modules/qabstracttreemodel.git
