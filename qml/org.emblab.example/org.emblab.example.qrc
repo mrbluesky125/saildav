@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>org/emblab/example/qmldir</file>
+        <file>org/emblab/example/TouchButton.qml</file>
+        <file>org/emblab/example/Header.qml</file>
+        <file>org/emblab/example/icons/add_icon.png</file>
+        <file>org/emblab/example/icons/back_icon.png</file>
+        <file>org/emblab/example/icons/delete_icon.png</file>
+        <file>org/emblab/example/icons/share_icon.png</file>
+        <file>org/emblab/example/icons/share_icon_pressed.png</file>
+        <file>org/emblab/example/LayoutSettings.qml</file>
+        <file>org/emblab/example/Tooltip.qml</file>
+        <file>org/emblab/example/icons/info_icon.png</file>
+        <file>org/emblab/example/NotificationArea.qml</file>
+        <file>org/emblab/example/Page.qml</file>
+    </qresource>
+</RCC>

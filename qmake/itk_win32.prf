@@ -1,0 +1,54 @@
+win32 {
+    CONFIG(release, debug|release) : CONFIG_DIR = Release
+    else:CONFIG(debug, debug|release) : CONFIG_DIR = Debug
+
+    ### Get ENV variable if not already set
+    isEmpty(ITK_VERSION):ITK_VERSION = $$(ITK_VERSION)
+    isEmpty(ITK_DIR):ITK_DIR = $$(ITK_DIR)
+    isEmpty(ITK_SRC_DIR):ITK_SRC_DIR = $$(ITK_SRC_DIR)
+
+    ### Debug output
+    message(ITK-Configuration:)
+    message(Version: $$ITK_VERSION)
+    message(Source: $$ITK_SRC_DIR)
+    message(Binary: $$ITK_DIR)
+    
+    ### Check if library can be found
+    !exists( $$ITK_DIR/ITKConfig.cmake ):error(ITK in '$$ITK_DIR' not found! Set ITK_DIR variable to the binary/build directory!)
+    !exists( $$ITK_SRC_DIR/CMakeLists.txt ):error(ITK sources in '$$ITK_SRC_DIR' not found! Set ITK_SRC_DIR variable to the source directory!)
+    isEmpty( ITK_VERSION ):error(ITK version not set! Set ITK_VERSION variable to a specific version!)
+	
+    ITK_MODULES += Bridge Core Filtering IO Numerics Registration Segmentation Video
+
+    ### ITK Library
+    for(MODULE, ITK_MODULES) {
+        SUBMODULE_DIRS = $$files($$ITK_SRC_DIR/Modules/$$MODULE/*)
+        for(SUBMODULE_DIR, SUBMODULE_DIRS) {
+            SUBMODULE = $$basename(SUBMODULE_DIR)
+            INCLUDEPATH += $$ITK_SRC_DIR/Modules/$$MODULE/$$SUBMODULE/include
+            INCLUDEPATH += $$ITK_DIR/Modules/$$MODULE/$$SUBMODULE
+        }
+    }
+
+    ### Third Party modules have a different structure, so we need to include them hardcoded
+    INCLUDEPATH += $$ITK_SRC_DIR/Modules/ThirdParty/VNL/src/vxl/vcl
+    INCLUDEPATH += $$ITK_SRC_DIR/Modules/ThirdParty/VNL/src/vxl/vcl/config.win32
+    INCLUDEPATH += $$ITK_SRC_DIR/Modules/ThirdParty/VNL/src/vxl/core
+    INCLUDEPATH += $$ITK_DIR/Modules/ThirdParty/VNL/src/vxl/core
+    INCLUDEPATH += $$ITK_DIR/Modules/ThirdParty/KWSys/src
+    INCLUDEPATH += $$files($$ITK_SRC_DIR/Modules/ThirdParty/GDCM/src/gdcm/Source/*)
+    INCLUDEPATH += $$files($$ITK_DIR/Modules/ThirdParty/GDCM/src/gdcm/Source/*)
+
+    DEFINES += _CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS
+
+    ###
+    win32-msvc*:LIBS += -L$$ITK_DIR/lib/$$CONFIG_DIR
+    win32-g++:LIBS += -L$$ITK_DIR/lib
+    
+    ### For convenience just link all itk libraries found in the lib directory
+    win32-msvc*:LIBS += $$files($$ITK_DIR/lib/$$CONFIG_DIR/*.lib)
+	win32-g++:LIBS += $$files($$ITK_DIR/lib/*.a)
+
+	LIBS += -litksys-$$ITK_VERSION	
+	LIBS += -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lrpcrt4 -lws2_32
+}

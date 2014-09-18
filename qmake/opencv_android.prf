@@ -1,0 +1,47 @@
+android {
+	### Get ENV variable if not already set
+	isEmpty(OPENCV_ANDROID_DIR):OPENCV_ANDROID_DIR = $$(OPENCV_ANDROID_DIR)
+    isEmpty(OPENCV_ANDROID_ARCH):OPENCV_ANDROID_ARCH =  $$(OPENCV_ANDROID_ARCH) #armeabi-v7a
+
+    ### Debug output
+    message(OpenCV-Android-Configuration:)
+	message(OPENCV_ANDROID_ARCH: $$OPENCV_ANDROID_ARCH)
+	message(OPENCV_ANDROID_DIR: $$OPENCV_ANDROID_DIR)
+    
+	### Check if library can be found
+	!exists( $$OPENCV_ANDROID_DIR/sdk ):error(OpenCV-Android SDK not found! Set OPENCV_ANDROID_DIR environment variable to the root directory of the installed sdk!)
+    isEmpty(OPENCV_ANDROID_ARCH):OPENCV_ANDROID_ARCH = armeabi-v7a
+	
+	### Main libs
+    LIBS += \
+        -L$$OPENCV_ANDROID_DIR/sdk/native/libs/$$OPENCV_ANDROID_ARCH \
+        -L$$OPENCV_ANDROID_DIR/sdk/native/3rdparty/libs/$$OPENCV_ANDROID_ARCH \
+        -lopencv_calib3d \
+        -lopencv_objdetect \
+        -lopencv_contrib \
+        -lopencv_video \
+        -lopencv_ml \
+        -lopencv_legacy \
+        -lopencv_highgui \
+        -lopencv_ts \
+        -lopencv_imgproc \
+        -lopencv_core \
+        -lopencv_androidcamera \
+        -lopencv_features2d
+	
+	### 3rdParty libs
+	LIBS += \
+        -llibjpeg \
+        -llibpng \
+        -llibtiff \
+        -ltbb \
+        -lIlmImf \
+        -llibjasper
+
+    INCLUDEPATH += \
+        $$OPENCV_ANDROID_DIR/sdk/native/jni/include \
+        $$OPENCV_ANDROID_DIR/sdk/native/jni/include/opencv \
+        $$OPENCV_ANDROID_DIR/sdk/native/jni/include/opencv2
+
+    DEFINES += OPENCV_USED
+}
