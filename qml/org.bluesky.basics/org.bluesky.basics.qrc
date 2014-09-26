@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>org/bluesky/basics/qmldir</file>
+        <file>org/bluesky/basics/TouchButton.qml</file>
+        <file>org/bluesky/basics/Header.qml</file>
+        <file>org/bluesky/basics/icons/add_icon.png</file>
+        <file>org/bluesky/basics/icons/back_icon.png</file>
+        <file>org/bluesky/basics/icons/delete_icon.png</file>
+        <file>org/bluesky/basics/icons/share_icon.png</file>
+        <file>org/bluesky/basics/icons/share_icon_pressed.png</file>
+        <file>org/bluesky/basics/LayoutSettings.qml</file>
+        <file>org/bluesky/basics/Tooltip.qml</file>
+        <file>org/bluesky/basics/icons/info_icon.png</file>
+        <file>org/bluesky/basics/NotificationArea.qml</file>
+        <file>org/bluesky/basics/Page.qml</file>
+    </qresource>
+</RCC>

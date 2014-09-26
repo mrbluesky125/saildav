@@ -1,5 +1,0 @@
-meedav (0.1.4) unstable; urgency=low
-
-  * Bugfix: Crash on path that consists only of a url
-
- -- Timo Zimmermann <meedav@timozimmermann.de>  Sun, 19 Feb 2012 01:05:47 +0000
