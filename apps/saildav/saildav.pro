@@ -13,7 +13,7 @@ SOURCES += main.cpp
 
 HEADERS +=
 
-RESOURCES += qml/qml.qrc
+RESOURCES += 
 
 OTHER_FILES += 
 
