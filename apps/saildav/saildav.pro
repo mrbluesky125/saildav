@@ -1,9 +1,9 @@
 #copy the executable to the source folder
-DLLDESTDIR = $$_PRO_FILE_PWD_
+win32:DLLDESTDIR = $$_PRO_FILE_PWD_
 
 #Include sub modules here - examples:
-include($$modules_dir/examplemodule/examplemodule.pri)         #example module
-include($$qml_dir/org.emblab.example/org.emblab.example.pri)   #example qml components
+#include($$modules_dir/examplemodule/examplemodule.pri)         #example module
+include($$qml_dir/org.bluesky.basics/org.bluesky.basics.pri)   #example qml components
 
 #Include project files
 INCLUDEPATH += $$PWD
@@ -23,13 +23,27 @@ QT += quick qml
 #use c++11 compiler flags
 CONFIG += c++11 
 
-#additional libraries (configured with the feature files in the qmake folder) - libs has to be at the end of the config var
+#additional libraries (configured with the feature files in the qmake folder)
 #CONFIG += opencv libs
 
-#Android specific variables - will be ignored in other configuration
+#Android specific variables - will be ignored in other configurations
 ANDROID_PACKAGE_SOURCE_DIR =
 ANDROID_EXTRA_LIBS =
 OTHER_FILES += $$files($$PWD/android/*)
+
+#Sailfish specific files
+CONFIG += sailfishapp
+OTHER_FILES += \
+    rpm/saildav.changes \
+    rpm/saildav.spec \
+    rpm/saildav.yaml \
+    translations/*.ts \
+    saildav.desktop
+
+# to disable building translations every time, comment out the
+# following CONFIG line
+CONFIG += sailfishapp_i18n
+TRANSLATIONS += translations/saildav-de.ts
 
 # Additional import path used to resolve QML modules in Creator's code model
 QML_IMPORT_PATH += $$qml_dir
