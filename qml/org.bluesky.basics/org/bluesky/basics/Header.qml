@@ -26,8 +26,8 @@ Rectangle {
         Item {
             id: backButtonItem
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            height: parent.height * 0.50
-            width: height
+            Layout.preferredHeight: parent.height * 0.50
+            Layout.preferredWidth: height
 
             Image {
                 id: backButtonImage

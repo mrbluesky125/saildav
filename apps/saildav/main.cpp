@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 
     QScopedPointer<QGuiApplication> app(new QGuiApplication(argc, argv));
     QScopedPointer<QQuickView> view(new QQuickView());
+    view->resize(768, 1024);
 
     qmlRegisterType<QQuickTreeItem>("qwebdav", 1, 0, "QQuickTreeItem");
     qmlRegisterType<QQuickTreeModel>("qwebdav", 1, 0, "QQuickTreeModel");

@@ -1,19 +1,15 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 
-import "components"
+import org.bluesky.basics 1.0
 
 Page {
     id: aboutPage
 
-    PageHeader {
+    Header {
         id: appTitleRect
         text: "MeeDav"
-        iconEnabled: true
-        iconSource: "images/meedav.svg"
     }
-
-    tools: topLevelTools
 
     Column {
         id: column

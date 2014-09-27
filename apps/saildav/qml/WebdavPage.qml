@@ -1,107 +1,102 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 1.1
 
-import "components"
 import "delegates"
-import "js/core.js" as Core
 
+import org.bluesky.basics 1.0
+import org.bluesky.models 1.0
 import qwebdav 1.0
 
 Page {
     id: webdavPage
 
-    tools: ToolBarLayout {
-        ToolIcon {
-            platformIconId: "toolbar-back"
-            onClicked: webdavClient.folder = webdavClient.parentFolder
-        }
-        ToolIcon {
-            platformIconId: "toolbar-home"
-            onClicked: webdavClient.cd(webdavClient.homePath)
-        }
-        ToolIcon {
-            platformIconId: "toolbar-refresh"
-            onClicked: webdavClient.refresh()
-        }
-        ToolIcon {
-            platformIconId: "toolbar-view-menu"
-            onClicked: (menu.status === DialogStatus.Closed) ? menu.open() : menu.close()
-        }
-    }
+//    tools: ToolBarLayout {
+//        ToolIcon {
+//            platformIconId: "toolbar-back"
+//            onClicked: webdavClient.folder = webdavClient.parentFolder
+//        }
+//        ToolIcon {
+//            platformIconId: "toolbar-home"
+//            onClicked: webdavClient.cd(webdavClient.homePath)
+//        }
+//        ToolIcon {
+//            platformIconId: "toolbar-refresh"
+//            onClicked: webdavClient.refresh()
+//        }
+//        ToolIcon {
+//            platformIconId: "toolbar-view-menu"
+//            onClicked: (menu.status === DialogStatus.Closed) ? menu.open() : menu.close()
+//        }
+//    }
 
-    Menu {
-        id: menu
-        visualParent: pageStack
-        MenuLayout {
-            MenuItem {
-                text: qsTr("New Folder")
-                onClicked: pageStack.push(Qt.resolvedUrl("CreateFolderPage.qml"), { model: webdavClient });
-            }
-            MenuItem {
-                text: qsTr("Upload")
-                onClicked: pageStack.push(Qt.resolvedUrl("FilesystemPage.qml"), { model: webdavClient });
-            }
-            MenuItem {
-                text: qsTr("Account")
-                onClicked: pageStack.replace(Qt.resolvedUrl("AccountPage.qml"), { account: Core.getAccount() });
-            }
-            MenuItem {
-                text: qsTr("About")
-                onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
-            }
-        }
-    }
+//    Menu {
+//        id: menu
+//        MenuLayout {
+//            MenuItem {
+//                text: qsTr("New Folder")
+//                onClicked: pageStack.push(Qt.resolvedUrl("CreateFolderPage.qml"), { model: webdavClient });
+//            }
+//            MenuItem {
+//                text: qsTr("Upload")
+//                onClicked: pageStack.push(Qt.resolvedUrl("FilesystemPage.qml"), { model: webdavClient });
+//            }
+//            MenuItem {
+//                text: qsTr("Account")
+//                onClicked: pageStack.replace(Qt.resolvedUrl("AccountPage.qml"), { account: Core.getAccount() });
+//            }
+//            MenuItem {
+//                text: qsTr("About")
+//                onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+//            }
+//        }
+//    }
 
-    Menu {
-        id: itemMenu
-        visualParent: pageStack
+//    Menu {
+//        id: itemMenu
+//        visualParent: pageStack
 
-        property WebdavFileInfo item: WebdavFileInfo { }
+//        property WebdavFileInfo item: WebdavFileInfo { }
 
-        MenuLayout {
-            MenuItem {
-                text: qsTr("Download")
-                enabled: !itemMenu.item.dir && !itemMenu.item.busy
-                onClicked: webdavClient.download(itemMenu.item.name);
-            }
-            MenuItem {
-                text: qsTr("Rename")
-                onClicked: pageStack.push(Qt.resolvedUrl("RenamePage.qml"), { model: webdavClient });
-                enabled: !itemMenu.item.busy
-            }
-            MenuItem {
-                text: qsTr("Delete")
-                onClicked: webdavClient.remove(itemMenu.item.name)
-                enabled: !itemMenu.item.busy
-            }
-            MenuItem {
-                text: qsTr("Abort")
-                onClicked: itemMenu.item.abort();
-                enabled: itemMenu.item.busy
-            }
-        }
+//        MenuLayout {
+//            MenuItem {
+//                text: qsTr("Download")
+//                enabled: !itemMenu.item.dir && !itemMenu.item.busy
+//                onClicked: webdavClient.download(itemMenu.item.name);
+//            }
+//            MenuItem {
+//                text: qsTr("Rename")
+//                onClicked: pageStack.push(Qt.resolvedUrl("RenamePage.qml"), { model: webdavClient });
+//                enabled: !itemMenu.item.busy
+//            }
+//            MenuItem {
+//                text: qsTr("Delete")
+//                onClicked: webdavClient.remove(itemMenu.item.name)
+//                enabled: !itemMenu.item.busy
+//            }
+//            MenuItem {
+//                text: qsTr("Abort")
+//                onClicked: itemMenu.item.abort();
+//                enabled: itemMenu.item.busy
+//            }
+//        }
+//    }
+
+    onStackStatusChanged: {
+        if(stackStatus === Stack.Activating)
+            account = accountModel.get(0);
     }
 
     property variant account
 
-    function showError(msg) {
-        banner.text = msg;
-        banner.iconSource = "image://theme/icon-l-error"
-        banner.show();
+    SqlLiteModel {
+        id: accountModel
+        databaseName: "saildav"
+        databaseVersion: "1.0"
+        tableName: "accounts"
+        primaryKeyName: "id"
     }
 
-    InfoBanner {
-        id: banner
-        y: 50
-    }
-
-    Rectangle {
-        id: background
-        anchors.fill: parent
-        color: "white"
-    }
-
-    PageHeader {
+    Header {
         id: appTitleRect
         text: webdavClient.folder == webdavClient.homePath ? "Home" : webdavClient.currentItem.displayName
     }
@@ -112,10 +107,6 @@ Page {
         opacity: webdavClient.currentItem.busy ? 1.0 : 0.0
 
         Behavior on opacity { NumberAnimation {} }
-
-        platformStyle: BusyIndicatorStyle {
-            size: "large"
-        }
     }
 
     ListView {
@@ -151,10 +142,6 @@ Page {
         password: account.password
         baseUrl: account.url
         onErrorChanged: showError(error);
-    }
-
-    ScrollDecorator {
-        flickableItem: itemView
     }
 
     //Component.onCompleted: webdavClient.folder = webdavClient.homePath

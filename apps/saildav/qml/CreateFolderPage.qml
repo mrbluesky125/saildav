@@ -1,19 +1,17 @@
-import QtQuick 1.1
-import com.nokia.meego 1.0
-import "components"
+import QtQuick 2.0
+import QtQuick.Controls 1.1
 
-import Webdav 1.0
+import org.bluesky.basics 1.0
+import qwebdav 1.0
 
 Page {
     id: root
 
     property WebdavModel model
 
-    tools: topLevelTools
-
-    PageHeader {
+    Header {
         id: appTitleRect
-        text: "New folder"
+        text: qsTr("New folder")
     }
 
     Column {
@@ -54,7 +52,7 @@ Page {
             text: "Create folder"
             onClicked: {
                 model.mkdir(currentField.text + inputField.text + "/");
-                pageStack.pop();
+                stackView.pop();
             }
         }
     }

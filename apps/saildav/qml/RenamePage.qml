@@ -1,7 +1,8 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
 
-import "components"
+import org.bluesky.basics 1.0
+import org.bluesky.models 1.0
 import qwebdav 1.0
 
 Page {
@@ -9,11 +10,9 @@ Page {
 
     property WebdavModel model
 
-    tools: topLevelTools
-
-    PageHeader {
+    Header {
         id: appTitleRect
-        text: "Rename"
+        text: qsTr("Rename")
     }
 
     Column {
@@ -43,7 +42,7 @@ Page {
             text: qsTr("Rename")
             onClicked: {
                 model.rename(model.folder, inputField.text);
-                pageStack.pop();
+                stackView.pop();
             }
         }
     }

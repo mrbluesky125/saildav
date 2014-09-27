@@ -1,34 +1,30 @@
-import QtQuick 1.1
-import com.nokia.meego 1.0
-import Qt.labs.folderlistmodel 1.0
-import "components"
-import "delegates"
+import QtQuick 2.0
 
-import Webdav 1.0
+import Qt.labs.folderlistmodel 1.0
+
+import org.bluesky.basics 1.0
+import org.bluesky.models 1.0
+import qwebdav 1.0
+
+import "delegates"
 
 Page {
     id: root
 
     property WebdavModel model
 
-    tools: ToolBarLayout {
-        ToolIcon {
-            platformIconId: "toolbar-back"
-            onClicked: folderModel.folder = folderModel.parentFolder
-        }
-        ToolIcon {
-            platformIconId: "toolbar-close"
-            onClicked: appWindow.pageStack.pop()
-        }
-    }
+//    tools: ToolBarLayout {
+//        ToolIcon {
+//            platformIconId: "toolbar-back"
+//            onClicked: folderModel.folder = folderModel.parentFolder
+//        }
+//        ToolIcon {
+//            platformIconId: "toolbar-close"
+//            onClicked: appWindow.pageStack.pop()
+//        }
+//    }
 
-    Rectangle {
-        id: background
-        anchors.fill: parent
-        color: "white"
-    }
-
-    PageHeader {
+    Header {
         id: appTitleRect
         text: folderModel.folder
     }
@@ -54,7 +50,7 @@ Page {
 
         function upload(localpath) {
             model.upload(model.folder, localpath);
-            pageStack.pop();
+            stackView.pop();
         }
     }
 }

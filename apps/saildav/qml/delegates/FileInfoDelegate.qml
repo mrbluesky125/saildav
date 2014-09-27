@@ -1,5 +1,4 @@
-import QtQuick 1.1
-import com.nokia.meego 1.0
+import QtQuick 2.0
 
 Item {
     id: root
@@ -46,7 +45,7 @@ Item {
             anchors.margins: 6
             spacing: 3
 
-            Label {
+            Text {
                 text: fileName
                 font.pixelSize: 26
                 font.family: "Nokia Pure Bold"
@@ -54,14 +53,14 @@ Item {
         }
     }
 
-    ToolIcon {
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.right: parent.right
-        anchors.rightMargin: 6
-        iconId: "transfer-upload"
-        visible: !dir
-        onClicked: root.ListView.view.upload(filePath)
-    }
+//    ToolIcon {
+//        anchors.verticalCenter: parent.verticalCenter
+//        anchors.right: parent.right
+//        anchors.rightMargin: 6
+//        iconId: "transfer-upload"
+//        visible: !dir
+//        onClicked: root.ListView.view.upload(filePath)
+//    }
 
     MouseArea {
         anchors.fill: parent

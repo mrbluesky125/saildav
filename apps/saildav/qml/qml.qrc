@@ -22,6 +22,5 @@
         <file>images/icon-m-toolbar-refresh.png</file>
         <file>images/meedav.svg</file>
         <file>images/meegotouch-background.png</file>
-        <file>js/core.js</file>
     </qresource>
 </RCC>

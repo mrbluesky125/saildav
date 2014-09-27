@@ -1,19 +1,23 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 
-import "components"
-import "js/core.js" as Core
+import org.bluesky.basics 1.0
+import org.bluesky.models 1.0
 
 Page {
     id: root
 
-    property variant account: Core.defaultAccount()
+    SqlLiteModel {
+        id: accountModel
+        databaseName: "saildav"
+        databaseVersion: "1.0"
+        tableName: "accounts"
+        primaryKeyName: "id"
+    }
 
-    tools: topLevelTools
-
-    PageHeader {
+    Header {
         id: appTitleRect
-        text: "MeeDav"
+        text: "SailDav - " + qsTr("New Account")
     }
 
     Flickable {
@@ -29,7 +33,7 @@ Page {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: 12
-            spacing: 6
+            spacing: 12
 
             Label {
                 text: "Username"
@@ -39,7 +43,7 @@ Page {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 id: usernameField
-                text: account.username
+                text: accountModel.get(0).username
             }
 
             Label {
@@ -50,7 +54,7 @@ Page {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 id: passwordField
-                text: account.password
+                text: accountModel.get(0).password
                 echoMode: TextInput.Password
             }
 
@@ -62,7 +66,7 @@ Page {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 id: urlField
-                text: account.url
+                text: accountModel.get(0).url
             }
 
             Label {
@@ -72,9 +76,9 @@ Page {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "Save"
                 onClicked: {
-                    var updateAccount =  {id: account.id, username: usernameField.text, password: passwordField.text, url: urlField.text }
-                    Core.updateAccount( updateAccount );
-                    pageStack.replace(Qt.resolvedUrl("WebdavPage.qml"), {account: Core.getAccount()});
+                    var updateAccount =  { username: usernameField.text, password: passwordField.text, url: urlField.text }
+                    accountModel.setSql(0, updateAccount);
+                    stackView.replace(Qt.resolvedUrl("WebdavPage.qml"), { account: updateAccount });
                 }
             }
         }

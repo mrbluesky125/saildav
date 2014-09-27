@@ -110,7 +110,7 @@ void QWebdavModel::componentComplete()
 {
     //loadCache(localRootPath());
     cd(homePath());
-    //QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
 }
 
 void QWebdavModel::replyFinished()
