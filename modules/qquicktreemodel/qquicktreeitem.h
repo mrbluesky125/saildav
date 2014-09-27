@@ -77,7 +77,7 @@ public:
     virtual Qt::ItemFlags flags() const { return Qt::ItemIsEnabled | Qt::ItemIsSelectable; }
     virtual int columnCount() const { return 1; }
 
-    Q_INVOKABLE virtual void readFromJson(const QJsonObject& json);
+    Q_INVOKABLE virtual void readFromJson(QJsonObject json);
     Q_INVOKABLE virtual void writeToJson(QJsonObject& json) const;
 
     ///\brief Returns the first item in the node that matches the criterion of the given property and that can be cast to type T

@@ -238,7 +238,7 @@ bool QQuickTreeItem::lessThan(const QVariant& left, const QVariant& right)
         return false;
 }
 
-void QQuickTreeItem::readFromJson(const QJsonObject& json)
+void QQuickTreeItem::readFromJson(QJsonObject json)
 {
     QJsonArray jsonChildList = json["childs"].toArray();
     foreach(QJsonValue jsonChild, jsonChildList) {

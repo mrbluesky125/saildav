@@ -1,9 +1,11 @@
 #copy the executable to the source folder
 win32:DLLDESTDIR = $$_PRO_FILE_PWD_
 
-#Include sub modules here - examples:
-#include($$modules_dir/examplemodule/examplemodule.pri)         #example module
-include($$qml_dir/org.bluesky.basics/org.bluesky.basics.pri)   #example qml components
+#Include sub modules here
+include($$modules_dir/qwebdav/qwebdav.pri)
+include($$modules_dir/qquicktreemodel/qquicktreemodel.pri)
+include($$qml_dir/org.bluesky.basics/org.bluesky.basics.pri)
+include($$qml_dir/org.bluesky.models/org.bluesky.models.pri)
 
 #Include project files
 INCLUDEPATH += $$PWD
@@ -13,12 +15,13 @@ SOURCES += main.cpp
 
 HEADERS +=
 
-RESOURCES += 
+RESOURCES += \ 
+    qml/qml.qrc
 
 OTHER_FILES += 
 
 #additional Qt modules
-QT += quick qml
+QT += quick qml xml
 
 #use c++11 compiler flags
 CONFIG += c++11 

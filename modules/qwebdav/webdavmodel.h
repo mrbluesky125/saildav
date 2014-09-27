@@ -1,17 +1,17 @@
 #ifndef WEBDAVMODEL_H
 #define WEBDAVMODEL_H
 
-#include <QtDeclarative>
+#include <QtQuick>
 
-#include "abstracttreemodel.h"
+#include "qquicktreemodel.h"
 #include "webdav.h"
 
 class QWebdavUrlInfo;
 
-class QWebdavModel : public AbstractTreeModel, public QDeclarativeParserStatus
+class QWebdavModel : public QQuickTreeModel, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
 
     Q_PROPERTY(QString folder READ folder WRITE setFolder NOTIFY folderChanged)
     Q_PROPERTY(QString parentFolder READ parentFolder NOTIFY folderChanged)
@@ -94,7 +94,5 @@ signals:
     void userNameChanged();
     void passwordChanged();
 };
-
-QML_DECLARE_TYPE(QWebdavModel)
 
 #endif // WEBDAVMODEL_H

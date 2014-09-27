@@ -1,12 +1,14 @@
 INCLUDEPATH += $$PWD
 
 SOURCES += \
-    $$files($$PWD/*.cpp)
+    $$PWD/qquicktreeitem.cpp \
+    $$PWD/qquicktreemodel.cpp
 
 HEADERS += \
-    $$files($$PWD/*.h)
+    $$PWD/qquicktreeitem.h \
+    $$PWD/qquicktreemodel.h
 
-OTHER_FILES += \
-    $$files($$PWD/qml/*)
+OTHER_FILES +=
+
 
 

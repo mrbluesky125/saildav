@@ -1,8 +1,14 @@
 INCLUDEPATH += $$PWD
 
-SOURCES +=
+SOURCES += \
+    $$PWD/webdav.cpp \
+    $$PWD/webdavfileinfo.cpp \
+    $$PWD/webdavmodel.cpp
 
-HEADERS +=
+HEADERS += \
+    $$PWD/webdav.h \
+    $$PWD/webdavfileinfo.h \
+    $$PWD/webdavmodel.h
 
 RESOURCES +=
 

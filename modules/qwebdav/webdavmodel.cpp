@@ -1,18 +1,13 @@
 #include "webdavmodel.h"
 #include "webdavfileinfo.h"
 
-QWebdavModel::QWebdavModel(QObject *parent) : AbstractTreeModel(new QWebdavUrlInfo("/"))
+QWebdavModel::QWebdavModel(QObject *parent) : QQuickTreeModel(new QWebdavUrlInfo("/"))
   ,m_folder("/")
   ,m_homePath("/")
-  ,m_localRootPath(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/MyDocs/meedav/")
+  ,m_localRootPath(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/saildav/")
   ,m_refreshFlag(false)
 {
-    QHash<int, QByteArray> roles = roleNames();
-    roles[FileNameRole] = "displayName";
-    roles[FilePathRole] = "name";
-    setRoleNames(roles);
-
-    connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
+    QObject::connect(&m_webdavManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(authenticationRequired(QNetworkReply*,QAuthenticator*)));
 }
 
 QWebdavModel::~QWebdavModel()
@@ -27,7 +22,7 @@ int QWebdavModel::rowCount(const QModelIndex &parent) const
 
 QVariant QWebdavModel::data(const QModelIndex &index, int role) const
 {
-    return AbstractTreeModel::data( this->index(index.row(), 0, getIndex(currentItem())), role );
+    return QQuickTreeModel::data( this->index(index.row(), 0, getIndex(currentItem())), role );
 }
 
 QString QWebdavModel::folder() const
@@ -210,7 +205,7 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
         return path;
 
     //search
-    foreach(AbstractTreeItem* item, findItem(path)->childList()) {
+    foreach(QQuickTreeItem* item, findItem(path)->childList()) {
         QWebdavUrlInfo* urlInfoItem = static_cast<QWebdavUrlInfo*>(item);
         if(urlInfoItem->name().endsWith(dirName + "/")) {
             qDebug() << "QWebdavModel | Folder found:" << dirName << "in path:" << path;
@@ -270,33 +265,38 @@ bool QWebdavModel::loadCache(const QString &path)
 {
     qDebug() << "QWebdavModel | Trying to load cache file from:" << path;
 
-    QFile cacheFile(path+".xmlCache");
+    QFile cacheFile(path + ".jsonCache");
     if(!cacheFile.open(QFile::ReadOnly)) {
         qDebug() << "QWebdavModel | Cache file" << cacheFile.fileName() << "not available";
         return false;
     }
 
-    QXmlStreamReader reader(&cacheFile);
-    m_rootItem->removeChildren(0, m_rootItem->childCount());
-    reader.readNextStartElement();
-    if(m_rootItem->readFromXml(reader)) {
-        qDebug() << "QWebdavModel | Cache file succesfully loaded.";
-        return true;
+    QJsonObject cacheObject = QJsonDocument::fromJson(cacheFile.readAll()).object();
+    if(cacheObject.isEmpty()) {
+        qDebug() << "QWebdavModel | Cache file empty or parser error occured.";
+        return false;
     }
-    return false;
+
+    m_rootItem->removeChildren(0, m_rootItem->childCount());
+    m_rootItem->readFromJson(cacheObject);
+
+    qDebug() << "QWebdavModel | Cache file succesfully loaded.";
+    return true;
 }
 
 bool QWebdavModel::saveCache(const QString &path)
 {
-    QFile cacheFile(path+".xmlCache");
+    QFile cacheFile(path + ".jsonCache");
     if(!cacheFile.open(QFile::WriteOnly)) {
         qDebug() << "QWebdavModel | Cache file" << cacheFile.fileName() << "not writable.";
         return false;
     }
 
-    QXmlStreamWriter writer(&cacheFile);
-    writer.setAutoFormatting(true);
-    return m_rootItem->writeToXml(writer);
+    QJsonObject cacheObject;
+    m_rootItem->writeToJson(cacheObject);
+
+    cacheFile.write(QJsonDocument(cacheObject).toJson(QJsonDocument::Indented));
+    return true;
 }
 
 void QWebdavModel::rename(const QString& path, const QString& to)

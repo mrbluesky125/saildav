@@ -1,12 +1,11 @@
-import QtQuick 1.1
-import com.nokia.meego 1.0
-import com.nokia.extras 1.0
+import QtQuick 2.0
+import QtQuick.Controls 1.0
 
 import "components"
 import "delegates"
 import "js/core.js" as Core
 
-import Webdav 1.0
+import qwebdav 1.0
 
 Page {
     id: webdavPage

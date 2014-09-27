@@ -69,7 +69,7 @@ QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& re
         req.setHeader(QNetworkRequest::ContentTypeHeader, "text/xml; charset=utf-8");
     }
 
-    return sendCustomRequest(req, method.toAscii(), outgoingData);
+    return sendCustomRequest(req, method.toLocal8Bit(), outgoingData);
 }
 
 QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, const QByteArray& outgoingData )

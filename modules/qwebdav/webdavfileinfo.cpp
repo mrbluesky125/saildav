@@ -26,7 +26,7 @@
 
 #include "webdavfileinfo.h"
 
-QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : AbstractTreeItem(parent)
+QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : QQuickTreeItem(parent)
   ,m_dir(false)
   ,m_file(false)
   ,m_group()
@@ -51,7 +51,7 @@ QWebdavUrlInfo::QWebdavUrlInfo(QWebdavUrlInfo* parent) : AbstractTreeItem(parent
 
 }
 
-QWebdavUrlInfo::QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent) : AbstractTreeItem(parent)
+QWebdavUrlInfo::QWebdavUrlInfo(const QString& name, QWebdavUrlInfo* parent) : QQuickTreeItem(parent)
   ,m_dir(false)
   ,m_file(false)
   ,m_group()
@@ -222,54 +222,60 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
         setMimeType(mimeType);
 }
 
-void QWebdavUrlInfo::readXmlTags(QXmlStreamReader &reader)
+void QWebdavUrlInfo::readFromJson(QJsonObject object)
 {
+    setDir(object.value("dir").toBool());
+    setFile(object.value("file").toBool());
+    setGroup(object.value("group").toString());
+    setLastModified(object.value("lastModified").toString());
+    setName(object.value("name").toString());
+    setOwner(object.value("owner").toString());
+    setPermissions(object.value("permissions").toInt());
+    setReadable(object.value("readable").toBool());
+    setSize(object.value("size").toInt());
+    setSymLink(object.value("symLink").toBool());
+    setWritable(object.value("writable").toBool());
+    setCreatedAt(object.value("createdAt").toString());
+    setDisplayName(object.value("displayName").toString());
+    setSource(object.value("source").toString());
+    setContentLanguage(object.value("contentLanguage").toString());
+    setEntitytag(object.value("entitytag").toString());
+    setMimeType(object.value("mimeType").toString());
 
-    if( reader.name() == "dir" ) setDir(reader.readElementText() == "true");
-    else if ( reader.name() == "file" ) setFile(reader.readElementText() == "true");
-    else if ( reader.name() == "group" ) setGroup(reader.readElementText());
-    else if ( reader.name() == "lastModified" ) setLastModified(reader.readElementText());
-    else if ( reader.name() == "name" ) setName(reader.readElementText());
-    else if ( reader.name() == "owner" ) setOwner(reader.readElementText());
-    else if ( reader.name() == "permissions" ) setPermissions(reader.readElementText().toInt());
-    else if ( reader.name() == "readable" ) setReadable(reader.readElementText() == "true");
-    else if ( reader.name() == "size" ) setSize(reader.readElementText().toULongLong());
-    else if ( reader.name() == "symLink" ) setSymLink(reader.readElementText() == "true");
-    else if ( reader.name() == "writable" ) setWritable(reader.readElementText() == "true");
-    else if ( reader.name() == "createdAt" ) setCreatedAt(reader.readElementText());
-    else if ( reader.name() == "displayName" ) setDisplayName(reader.readElementText());
-    else if ( reader.name() == "source" ) setSource(reader.readElementText());
-    else if ( reader.name() == "contentLanguage" ) setContentLanguage(reader.readElementText());
-    else if ( reader.name() == "entitytag" ) setEntitytag(reader.readElementText());
-    else if ( reader.name() == "mimeType" ) setMimeType(reader.readElementText());
-    else if ( reader.name() == "item" ) {
-        QScopedPointer<QWebdavUrlInfo> item(new QWebdavUrlInfo());
-        if(item->readFromXml(reader)) addChild(item.take());
+    QJsonArray jsonChildList = object["childs"].toArray();
+    foreach(QJsonValue jsonChild, jsonChildList) {
+        QWebdavUrlInfo* newChild(new QWebdavUrlInfo(this));
+        newChild->readFromJson(jsonChild.toObject());
     }
-    else AbstractTreeItem::readXmlTags(reader);
-
 }
 
-void QWebdavUrlInfo::writeXmlTags(QXmlStreamWriter &writer) const
+void QWebdavUrlInfo::writeToJson(QJsonObject& object) const
 {
-    writer.writeTextElement("dir", isDir() ? "true" : "false");
-    writer.writeTextElement("file", isFile() ? "true" : "false");
-    writer.writeTextElement("group", group());
-    writer.writeTextElement("lastModified", lastModified());
-    writer.writeTextElement("name", name());
-    writer.writeTextElement("owner", owner());
-    writer.writeTextElement("permissions", QString::number(permissions()));
-    writer.writeTextElement("readable", isReadable() ? "true" : "false");
-    writer.writeTextElement("size", QString::number(size()));
-    writer.writeTextElement("symLink", isSymLink() ? "true" : "false");
-    writer.writeTextElement("writable", isWritable() ? "true" : "false");
-    writer.writeTextElement("createdAt", createdAt());
-    writer.writeTextElement("displayName", displayName());
-    writer.writeTextElement("source", source());
-    writer.writeTextElement("contentLanguage", contentLanguage());
-    writer.writeTextElement("entitytag", entitytag());
-    writer.writeTextElement("mimeType", mimeType());
-    AbstractTreeItem::writeXmlTags(writer);
+    object.insert("dir", isDir());
+    object.insert("file", isFile());
+    object.insert("group", group());
+    object.insert("lastModified", lastModified());
+    object.insert("name", name());
+    object.insert("owner", owner());
+    object.insert("permissions", QString::number(permissions()));
+    object.insert("readable", isReadable());
+    object.insert("size", QString::number(size()));
+    object.insert("symLink", isSymLink());
+    object.insert("writable", isWritable());
+    object.insert("createdAt", createdAt());
+    object.insert("displayName", displayName());
+    object.insert("source", source());
+    object.insert("contentLanguage", contentLanguage());
+    object.insert("entitytag", entitytag());
+    object.insert("mimeType", mimeType());
+
+    QJsonArray jsonChildList;
+    foreach(QQuickTreeItem* child, childList()) {
+        QJsonObject jsonChild;
+        child->writeToJson(jsonChild);
+        jsonChildList.append(jsonChild);
+    }
+    object["childs"] = jsonChildList;
 }
 
 void QWebdavUrlInfo::setDir(bool b)
@@ -522,7 +528,7 @@ bool QWebdavUrlInfo::isBusy() const
 void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
 {
     //get current child list
-    QList<AbstractTreeItem*> oldItems = childList();
+    QList<QQuickTreeItem*> oldItems = childList();
 
     QDomDocument multiResponse;
     multiResponse.setContent(xmlData, true);
@@ -551,11 +557,11 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
         }
 
         qDebug() << "QWebdavUrlInfo | Response received: " << item->name();
-        QApplication::processEvents();
+        QCoreApplication::processEvents();
     }
 
     //remove not updated items
-    foreach(AbstractTreeItem* item, oldItems) {
+    foreach(QQuickTreeItem* item, oldItems) {
         removeChild(item);
     }
 }
@@ -615,7 +621,6 @@ void QWebdavUrlInfo::finished()
             qDebug() << "QWebdavUrlInfo | Download of" << displayName() << "finished.";
         }
     }
-
 
     setProgress(0.0);
     m_reply->deleteLater();

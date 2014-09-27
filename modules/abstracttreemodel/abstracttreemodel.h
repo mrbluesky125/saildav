@@ -22,7 +22,7 @@
 #define ABSTRACT_TREE_MODEL_H
 
 #include <QtCore>
-#include <QtDeclarative>
+#include <QtQuick>
 
 #include "abstracttreeitem.h"
 

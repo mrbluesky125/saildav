@@ -1,36 +1,36 @@
 #include <QtGui>
-#include <QtDeclarative>
+#include <QtQuick>
 #include <QtDebug>
-#include <MDeclarativeCache>
 
-QFile file(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/meedav.log");
+#ifdef SAILFISH
+#include <sailfishapp.h>
+#endif
 
-void myMessageOutput(QtMsgType type, const char *msg)
+#include "qquicktreeitem.h"
+#include "qquicktreemodel.h"
+#include "webdavfileinfo.h"
+#include "webdavmodel.h"
+
+int main(int argc, char *argv[])
 {
-    QTextStream fs(&file);
-    fs << QDateTime::currentDateTime().toString("yyyy.MM.dd hh:mm:ss") << "|" << msg << "\n";
-}
+    //QGuiApplication* app = SailfishApp::application(int, char *[]);
+    //QQuickView* view + SailfishApp::createView();
 
-Q_DECL_EXPORT int main(int argc, char *argv[])
-{
-    file.open(QIODevice::ReadWrite | QIODevice::Text);
-    //qInstallMsgHandler(myMessageOutput);
+    QScopedPointer<QGuiApplication> app(new QGuiApplication(argc, argv));
+    QScopedPointer<QQuickView> view(new QQuickView());
 
-    QString version = PACKAGEVERSION;
+    qmlRegisterType<QQuickTreeItem>("qwebdav", 1, 0, "QQuickTreeItem");
+    qmlRegisterType<QQuickTreeModel>("qwebdav", 1, 0, "QQuickTreeModel");
+    qmlRegisterType<QWebdavUrlInfo>("qwebdav", 1, 0, "WebdavFileInfo");
+    qmlRegisterType<QWebdavModel>("qwebdav", 1, 0, "WebdavModel");
 
-    QScopedPointer<QApplication> app(MDeclarativeCache::qApplication(argc, argv));
-    QScopedPointer<QDeclarativeView> view(MDeclarativeCache::qDeclarativeView());
+    view->setResizeMode(QQuickView::SizeRootObjectToView);
+    view->rootContext()->engine()->addImportPath(":/");
+    view->rootContext()->engine()->addPluginPath(":/");
+    view->rootContext()->engine()->addImportPath("../../plugin");
+    view->rootContext()->engine()->addPluginPath("../../plugin");
+    view->setSource(QUrl("qrc:/Mainwindow.qml"));
+    view->show();
 
-    QDeclarativeEngine* engine = view->engine();
-    QStringList importPathList = engine->importPathList();
-    engine->setImportPathList(importPathList << "/opt/meedav/qml");
-
-    view->rootContext()->setContextProperty("version", version);
-    view->setSource( QUrl::fromLocalFile("/opt/meedav/qml/main.qml") );
-    view->showFullScreen();
-
-    int ret = app->exec();
-
-    file.close();
-    return ret;
+    return app->exec();
 }

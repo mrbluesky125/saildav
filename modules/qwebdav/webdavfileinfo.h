@@ -24,17 +24,13 @@
 #ifndef QWEBDAV_URL_INFO_H
 #define QWEBDAV_URL_INFO_H
 
-#include <QDomDocument>
-#include <QDomElement>
-#include <QDomNodeList>
-
 #include <QtCore>
-#include <QtDeclarative>
+#include <QtXml>
 
 #include "webdav.h"
-#include "abstracttreeitem.h"
+#include "qquicktreeitem.h"
 
-class QWebdavUrlInfo : public AbstractTreeItem
+class QWebdavUrlInfo : public QQuickTreeItem
 {
     Q_OBJECT
 
@@ -151,8 +147,8 @@ protected:
     QDateTime parseDateTime(const QString& input, const QString& type);
     void davParsePropstats(const QString& path, const QDomNodeList& propstat);
 
-    virtual void readXmlTags(QXmlStreamReader& reader);
-    virtual void writeXmlTags(QXmlStreamWriter& writer) const;
+    void readFromJson(QJsonObject object);
+    void writeToJson(QJsonObject& object) const;
 
 signals:
     void dirChanged(bool);
@@ -178,12 +174,11 @@ signals:
     void errorChanged(QString);
 };
 
-QML_DECLARE_TYPE(QWebdavUrlInfo)
 
 inline QDebug operator<<(QDebug dbg, const QWebdavUrlInfo &item)
 {
     dbg.nospace() << "(" << item.name() << ", ";
-    foreach(AbstractTreeItem* child, item.childList()) {
+    foreach(QQuickTreeItem* child, item.childList()) {
         dbg.nospace() << *dynamic_cast<QWebdavUrlInfo*>(child);
     }
     dbg.nospace() << ")";

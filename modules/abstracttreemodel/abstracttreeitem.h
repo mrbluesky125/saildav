@@ -21,7 +21,7 @@
 #ifndef ABSTRACT_TREE_ITEM_H
 #define ABSTRACT_TREE_ITEM_H
 
-#include <QtDeclarative>
+#include <QtQuick>
 
 #include <QtCore>
 #include <QtDebug>

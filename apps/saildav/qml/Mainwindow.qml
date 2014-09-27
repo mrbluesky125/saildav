@@ -1,23 +1,18 @@
-import QtQuick 1.1
-import com.nokia.meego 1.0
-import com.nokia.extras 1.0
+import QtQuick 2.0
+import QtQuick.Controls 1.1
 
 import "js/core.js" as Core
 
-import Webdav 1.0
+import qwebdav 1.0
 
-PageStackWindow {
+Item {
     id: appWindow
 
-    ToolBarLayout {
-        id: topLevelTools
-        visible: false
 
-        ToolIcon {
-            platformIconId: "toolbar-back"
-            onClicked: pageStack.pop()
-        }
-    }  
+    StackView {
+       anchors.fill: parent
+
+    }
 
     Component.onCompleted: {
         Core.openDB();

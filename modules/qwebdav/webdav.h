@@ -26,11 +26,7 @@
 #define QWEBDAV_H
 
 #include <QtCore>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QUrl>
-#include <QUrlInfo>
+#include <QtNetwork>
 
 class QWebdavUrlInfo;
 

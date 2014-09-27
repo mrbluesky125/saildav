@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/">
+        <file>AboutPage.qml</file>
+        <file>AccountPage.qml</file>
+        <file>CreateFolderPage.qml</file>
+        <file>FilesystemPage.qml</file>
+        <file>Mainwindow.qml</file>
+        <file>RenamePage.qml</file>
+        <file>WebdavPage.qml</file>
+        <file>components/PageHeader.qml</file>
+        <file>components/ProgressBar.qml</file>
+        <file>delegates/FileInfoDelegate.qml</file>
+        <file>delegates/SectionDelegate.qml</file>
+        <file>delegates/WebdavUrlInfoDelegate.qml</file>
+        <file>images/icon-l-meedav.png</file>
+        <file>images/icon-l-meedav-application.svg</file>
+        <file>images/icon-l-sharing-document.png</file>
+        <file>images/icon-m-common-directory.png</file>
+        <file>images/icon-m-email-directory-incoming.png</file>
+        <file>images/icon-m-email-directory-outgoing.png</file>
+        <file>images/icon-m-meedav.png</file>
+        <file>images/icon-m-toolbar-refresh.png</file>
+        <file>images/meedav.svg</file>
+        <file>images/meegotouch-background.png</file>
+        <file>js/core.js</file>
+    </qresource>
+</RCC>
