@@ -17,12 +17,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <QtDebug>
+
 #include "qquicktreeitem.h"
 
-QQuickTreeItem::QQuickTreeItem(QQuickTreeItem* parent) : QObject(parent)
-  ,m_parentItem (parent)
+QMap<QString, std::function<QQuickTreeItem*()> > QQuickTreeItem::s_createFunctions;
+
+QQuickTreeItem::QQuickTreeItem(QObject* parent) : QObject(parent)
+  ,m_parentItem( qobject_cast<QQuickTreeItem*>(parent) )
 {
-    //insert self to parents child list
+    //insert self to parents child list - only if parent is also a QQuickTreeItem
     if(m_parentItem != nullptr)
         m_parentItem->insertChild(m_parentItem->childCount(), this);
 }
@@ -44,8 +48,7 @@ QQuickTreeItem *QQuickTreeItem::child(int number) const
 ///\brief returns the child list as qml compatible list property
 QQmlListProperty<QQuickTreeItem> QQuickTreeItem::childs()
 {
-    return QQmlListProperty<QQuickTreeItem>(this, 0, &QQuickTreeItem::count, &QQuickTreeItem::at);
-    //return QQmlListProperty<QQuickTreeItem>(this, m_childItems);
+    return QQmlListProperty<QQuickTreeItem>(this, 0, &QQuickTreeItem::append, &QQuickTreeItem::count, &QQuickTreeItem::at, &QQuickTreeItem::clear);
 }
 
 ///\brief returns the child list
@@ -97,7 +100,12 @@ bool QQuickTreeItem::addChild(QQuickTreeItem* item)
 bool QQuickTreeItem::insertChild(int position, QQuickTreeItem* item)
 {
     if(item == 0 || position < 0 || position > m_childItems.size()) {
-        qWarning() << "QQuickTreeItem |" << QObject::tr("New child item could not be inserted.") << item;
+        qCWarning(MODULES_QQUICKTREEMODEL) << QObject::tr("New child item could not be inserted.") << item;
+        return false;
+    }
+
+    if(m_childItems.contains(item)) {
+        qCWarning(MODULES_QQUICKTREEMODEL) << QObject::tr("Item is already in the list") << item;
         return false;
     }
 
@@ -115,7 +123,7 @@ bool QQuickTreeItem::insertChild(int position, QQuickTreeItem* item)
 bool QQuickTreeItem::insertChildren(int position, const QList<QQuickTreeItem*>& items)
 {
     if (position < 0 || position > m_childItems.size()) {
-        qWarning() << "QQuickTreeItem |" << QObject::tr("New child item could not be inserted.");
+        qCWarning(MODULES_QQUICKTREEMODEL) << QObject::tr("New child item could not be inserted.");
         return false;
     }
 
@@ -176,9 +184,10 @@ bool QQuickTreeItem::removeChild(QQuickTreeItem* item)
         return false;
 
     //remove and set parent to NULL
-    delete m_childItems.takeAt(position);
-
+    QQuickTreeItem* removedChild = m_childItems.takeAt(position);
     emit childsChanged();
+
+    delete removedChild;
     return true;
 }
 
@@ -191,10 +200,13 @@ bool QQuickTreeItem::removeChildren(int position, int count)
     if (position < 0 || position + count > m_childItems.size())
         return false;
 
+    QList<QQuickTreeItem*> removedChilds;
     for (int row = 0; row < count; ++row)
-        delete m_childItems.takeAt(position);
+        removedChilds << m_childItems.takeAt(position);
 
     emit childsChanged();
+
+    qDeleteAll(removedChilds);
     return true;
 }
 
@@ -238,24 +250,33 @@ bool QQuickTreeItem::lessThan(const QVariant& left, const QVariant& right)
         return false;
 }
 
-void QQuickTreeItem::readFromJson(QJsonObject json)
+void QQuickTreeItem::fromJson(QJsonObject json)
 {
+    removeChildren(0, childCount());
+
     QJsonArray jsonChildList = json["childs"].toArray();
     foreach(QJsonValue jsonChild, jsonChildList) {
-        QQuickTreeItem* newChild(new QQuickTreeItem(this));
-        newChild->readFromJson(jsonChild.toObject());
+        QJsonObject childObject = jsonChild.toObject();
+        QQuickTreeItem* newChild = s_createFunctions.value(childObject.value("itemType").toString(), [this]()->QQuickTreeItem*{ return new QQuickTreeItem(); })();
+        newChild->fromJson(childObject);
+        addChild(newChild);
     }
 }
 
-void QQuickTreeItem::writeToJson(QJsonObject& json) const
+QJsonObject QQuickTreeItem::toJson() const
 {
-    QJsonArray jsonChildList;
-    foreach(QQuickTreeItem* child, childList()) {
-        QJsonObject jsonChild;
-        child->writeToJson(jsonChild);
-        jsonChildList.append(jsonChild);
+    QJsonObject json;
+    json["itemType"] = "QQuickTreeItem";
+
+    if(childCount() > 0) {
+        QJsonArray jsonChildList;
+        foreach(QQuickTreeItem* child, childList()) {
+            jsonChildList.append(child->toJson());
+        }
+        json["childs"] = jsonChildList;
     }
-    json["childs"] = jsonChildList;
+
+    return json;
 }
 
 ///----------------------------------------------------------QML-List Interface-----------------------------------------------------------------//
@@ -268,24 +289,24 @@ QQuickTreeItem* listObject(QQmlListProperty<ElementType>* list)
 
 void QQuickTreeItem::append(QQmlListProperty<QQuickTreeItem> *list, QQuickTreeItem *item)
 {
-    if(listObject(list) == 0) return;
+    if(listObject(list) == nullptr) return;
     listObject(list)->addChild(item);
 }
 
 int QQuickTreeItem::count(QQmlListProperty<QQuickTreeItem> *list)
 {
-    if(listObject(list) == 0) return 0;
+    if(listObject(list) == nullptr) return 0;
     return listObject(list)->childCount();
 }
 
 QQuickTreeItem * QQuickTreeItem::at(QQmlListProperty<QQuickTreeItem> *list, int index)
 {
-    if(listObject(list) == 0) return 0;
+    if(listObject(list) == nullptr) return nullptr;
     return listObject(list)->child(index);
 }
 
 void QQuickTreeItem::clear(QQmlListProperty<QQuickTreeItem>* list)
 {
-    if(listObject(list) == 0) return;
+    if(listObject(list) == nullptr) return;
     listObject(list)->removeChildren(0, listObject(list)->childCount());
 }

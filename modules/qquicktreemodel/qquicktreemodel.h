@@ -25,6 +25,8 @@
 
 #include "qquicktreeitem.h"
 
+Q_DECLARE_LOGGING_CATEGORY(MODULES_QQUICKTREEMODEL)
+
 ///\brief Provides a basic tree model that handles the basic tree structure suitable for a QTreeView.
 ///The standard implementation of data() and setData() uses the property names that are mapped to the given roles.
 ///In subclasses it is recommended to define this mapping through setRoleNames() in the constructor. This enables
@@ -41,10 +43,16 @@
 class QQuickTreeModel : public QAbstractItemModel
 {
     Q_OBJECT
+    Q_PROPERTY(QQuickTreeItem* rootItem READ rootItem WRITE setRootItem NOTIFY rootItemChanged)
+
+    Q_CLASSINFO("DefaultProperty", "rootItem")
 
 public:
-    QQuickTreeModel(QQuickTreeItem* rootItem = 0);
+    QQuickTreeModel(QObject* rootItem = 0);
     virtual ~QQuickTreeModel();
+
+    QQuickTreeItem* rootItem() const;
+    void setRootItem(QQuickTreeItem* arg);
 
     QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &index) const;
@@ -71,11 +79,12 @@ public:
     Q_INVOKABLE void loadFromJson(const QString& filename);
     Q_INVOKABLE void saveToJson(const QString& filename) const;
 
-protected:
-    QQuickTreeItem* m_rootItem;	///<Root item of the model
+signals:
+    void childsChanged();
+    void rootItemChanged();
 
-private:
-    Q_DISABLE_COPY(QQuickTreeModel)
+protected:
+    QScopedPointer<QQuickTreeItem> m_rootItem;	///<Root item of the model
 
 };
 

@@ -17,21 +17,34 @@
  * Boston, MA 02110-1301, USA.
  */
 
-
 #include "qquicktreeitem.h"
 #include "qquicktreemodel.h"
 
-QQuickTreeModel::QQuickTreeModel(QQuickTreeItem* rootItem) : QAbstractItemModel()
-  ,m_rootItem(rootItem == 0 ? new QQuickTreeItem() : rootItem)
+Q_LOGGING_CATEGORY(MODULES_QQUICKTREEMODEL, "modules.qquicktreemodel")
+
+QQuickTreeModel::QQuickTreeModel(QObject *rootItem) : QAbstractItemModel()
+  ,m_rootItem(rootItem == 0 ? new QQuickTreeItem() : qobject_cast<QQuickTreeItem*>(rootItem))
 {
 
 }
 
 QQuickTreeModel::~QQuickTreeModel()
 {
-    delete m_rootItem;
+
 }
 
+QQuickTreeItem *QQuickTreeModel::rootItem() const
+{
+    return m_rootItem.data();
+}
+
+void QQuickTreeModel::setRootItem(QQuickTreeItem *arg)
+{
+    if(m_rootItem.data() == arg) return;
+
+    m_rootItem.reset(arg);
+    emit rootItemChanged();
+}
 
 ///\brief Returns the item at the given model index
 ///\param index The index of the requested item
@@ -42,7 +55,7 @@ QQuickTreeItem* QQuickTreeModel::getItem(const QModelIndex &index) const
         QQuickTreeItem* item = reinterpret_cast<QQuickTreeItem*>(index.internalPointer());
         if (item != nullptr) return item;
     }
-    return m_rootItem;
+    return m_rootItem.data();
 }
 
 ///\brief Returns the index of the given item
@@ -61,25 +74,25 @@ void QQuickTreeModel::loadFromJson(const QString &filename)
 {
     QFile jsonFile(filename);
     if(!jsonFile.open(QFile::ReadOnly | QFile::Text)) {
-        qWarning() << "Unable to open file" << filename << "for reading.";
+        qCWarning(MODULES_QQUICKTREEMODEL) << "Unable to open file" << filename << "for reading.";
         return;
     }
 
     QJsonObject rootObject = QJsonDocument::fromJson(jsonFile.readAll()).object();
-    m_rootItem->readFromJson(rootObject);
-    jsonFile.close();
+    QQuickTreeItem* rootItem = QQuickTreeItem::s_createFunctions.value(rootObject.value("itemType").toString(), [this]()->QQuickTreeItem*{ return new QQuickTreeItem(); })();
+    rootItem->fromJson(rootObject);
+    m_rootItem.reset(rootItem);
 }
 
 void QQuickTreeModel::saveToJson(const QString &filename) const
 {
     QFile jsonFile(filename);
     if(!jsonFile.open(QFile::WriteOnly | QFile::Text)) {
-        qWarning() << "Unable to open file" << filename << "for writing.";
+        qCWarning(MODULES_QQUICKTREEMODEL) << "Unable to open file" << filename << "for writing.";
         return;
     }
 
-    QJsonObject rootObject;
-    m_rootItem->writeToJson(rootObject);
+    QJsonObject rootObject = m_rootItem->toJson();
     jsonFile.write(QJsonDocument(rootObject).toJson());
     jsonFile.close();
 }
@@ -159,13 +172,13 @@ bool QQuickTreeModel::moveRow(int from, int to, const QModelIndex& parent)
 ///\return The parent index of the given index
 QModelIndex QQuickTreeModel::parent(const QModelIndex &index) const
 {
-    if (!index.isValid())
+    if(!index.isValid())
         return QModelIndex();
 
     QQuickTreeItem* childItem = getItem(index);
     QQuickTreeItem* parentItem = childItem->parentItem();
 
-    if (parentItem == 0 || parentItem == m_rootItem)
+    if( (parentItem == 0) || (parentItem == m_rootItem.data()) )
         return QModelIndex();
 
     return createIndex(parentItem->childNumber(), 0, parentItem);
@@ -235,6 +248,7 @@ QQuickTreeItem* QQuickTreeModel::takeRow(int row, const QModelIndex &parent)
 ///\brief Standard implementation
 int QQuickTreeModel::columnCount(const QModelIndex& parent) const
 {
+    Q_UNUSED(parent)
     return m_rootItem->columnCount();
 }
 
@@ -285,6 +299,8 @@ Qt::ItemFlags QQuickTreeModel::flags(const QModelIndex &index) const
 ///\param order Sorting order (ascending/descending)
 void QQuickTreeModel::sort(int column, Qt::SortOrder order)
 {
+    Q_UNUSED(column)
+    ///\todo sorting according to the column
     sort("title", order);
 }
 

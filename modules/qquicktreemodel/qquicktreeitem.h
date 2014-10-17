@@ -24,6 +24,9 @@
 
 #include <QtCore>
 #include <QtDebug>
+#include <functional>
+
+Q_DECLARE_LOGGING_CATEGORY(MODULES_QQUICKTREEMODEL)
 
 class QQuickTreeItem;
 
@@ -46,7 +49,7 @@ class QQuickTreeItem : public QObject
     friend class QQuickTreeModel;
 
 public:
-    QQuickTreeItem(QQuickTreeItem *parentItem = 0);
+    QQuickTreeItem(QObject *parentItem = 0);
     virtual ~QQuickTreeItem();
 
     QQuickTreeItem* child(int number) const;
@@ -76,9 +79,6 @@ public:
     
     virtual Qt::ItemFlags flags() const { return Qt::ItemIsEnabled | Qt::ItemIsSelectable; }
     virtual int columnCount() const { return 1; }
-
-    Q_INVOKABLE virtual void readFromJson(QJsonObject json);
-    Q_INVOKABLE virtual void writeToJson(QJsonObject& json) const;
 
     ///\brief Returns the first item in the node that matches the criterion of the given property and that can be cast to type T
     ///\tparam T The type of the item. Could be the type of a derived class
@@ -112,6 +112,11 @@ public:
     template<typename T> inline T* findRoot() const
     { return parentItem() == 0 ? qobject_cast<T*>(const_cast<QQuickTreeItem*>(this)) : parentItem()->findRoot<T>(); }
 
+    virtual void fromJson(QJsonObject json);
+    virtual QJsonObject toJson() const;
+
+    static QMap<QString, std::function<QQuickTreeItem*()> > s_createFunctions;
+
 protected:
     QList<QQuickTreeItem*> m_childItems;	///<Child item list
     QQuickTreeItem* m_parentItem;		    ///<Parent item
@@ -122,8 +127,6 @@ signals:
     void parentItemChanged();
     void childsChanged();
 };
-
-QML_DECLARE_TYPE(QQuickTreeItem)
 
 ///\brief Searches the given item and its childs for the first item that matches the given criterion with the given property name.
 ///\param criterion criterion that is searched for
