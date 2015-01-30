@@ -26,7 +26,7 @@ Page {
                 anchors.margins: Theme.paddingLarge
 
                 label: qsTr("Über Saildav")
-                text: qsTr("This app is a client to access online storage using HTTP/DAV protocol.\nIt is a Sailfish port of the Meego app MeeDAV.")
+                text: qsTr("This app is a client to access online storage using HTTP/DAV protocol.\nIt is a Sailfish/QtQuick2 port of the Meego app MeeDAV.")
                 separator: true
             }
 
@@ -44,7 +44,7 @@ Page {
                 anchors.margins: Theme.paddingLarge
 
                 label: qsTr("Einschränkungen")
-                text: qsTr("Die Zugangsinformationen werden im KLARTEXT in einer SQLite Datenbank gespeichert. Benutze die App nicht falls du damit nicht einverstanden bist!")
+                text: qsTr("Die Zugangsinformationen werden im KLARTEXT in einer SQLite Datenbank gespeichert. Benutze die App nicht, falls du damit nicht einverstanden bist!")
             }
 
             LabelWithCaption {
@@ -76,11 +76,11 @@ Page {
                     anchors.margins: Theme.paddingLarge
 
                     label: qsTr("Source code")
-                    text: "http://git.timozimmermann.de/timo/saildav"
+                    text: "https://gitorious.org/saildav"
                     color: clickableUrl.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
                 onClicked: {
-                    openInDefaultApp("http://git.timozimmermann.de/timo/saildav");
+                    openInDefaultApp("https://gitorious.org/saildav");
                 }
             }
 
@@ -89,7 +89,7 @@ Page {
                 anchors.margins: Theme.paddingLarge
 
                 label: qsTr("References")
-                text: qsTr("This project uses code and ideas of other projects, see README.md.")
+                text: qsTr("This project uses code and ideas of other projects, see README.md")
                 separator: false
             }
         }

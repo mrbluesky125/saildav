@@ -54,7 +54,7 @@ Page {
                 }
             }
             MenuItem {
-                text: webdavClient.currentItem.parentItem.name
+                text: "cd " + webdavClient.currentItem.parentItem.name
                 onClicked: {
                     webdavClient.folder = webdavClient.parentFolder
                 }
@@ -67,7 +67,7 @@ Page {
                 MenuItem {
                     text: "Download"
                     onClicked: {
-                        remorseAction("Deleting", function() { accountsModel.removeSql(rowid); });
+                        remorseAction("Deleting", function() {  });
                     }
                 }
                 MenuItem {
