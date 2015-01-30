@@ -1,23 +1,22 @@
-#include "exampleqmlplugin.h"
+#include "qwebdavplugin.h"
 
 #include <QtQml>
 
-void ExamplePlugin::initializeEngine(QQmlEngine *engine, const char *uri)
+#include "qquicktreeitem.h"
+#include "qquicktreemodel.h"
+#include "webdavfileinfo.h"
+#include "webdavmodel.h"
+
+void QWebDavPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
 
 }
 
-void ExamplePlugin::registerTypes(const char *uri)
+void QWebDavPlugin::registerTypes(const char *uri)
 {
-    //replace the uri with the current plugin name, this is used by the qml editor of QtCreator
-    //to resolve the registered plugin types
-
-    //@uri example
-    //qmlRegisterType<MyItem>(uri, 1, 0, "MyItem");
-
     //@uri qwebdav
-    qmlRegisterType<AbstractTreeItem>(uri, 1, 0, "AbstractTreeItem");
-    qmlRegisterType<AbstractTreeModel>(uri, 1, 0, "AbstractTreeModel");
+    qmlRegisterType<QQuickTreeItem>(uri, 1, 0, "QQuickTreeItem");
+    qmlRegisterType<QQuickTreeModel>(uri, 1, 0, "QQuickTreeModel");
     qmlRegisterType<QWebdavUrlInfo>(uri, 1, 0, "WebdavFileInfo");
     qmlRegisterType<QWebdavModel>(uri, 1, 0, "WebdavModel");
 }

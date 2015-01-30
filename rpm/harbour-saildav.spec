@@ -17,7 +17,7 @@ Version:    0.1
 Release:    1
 Group:      Applications/Internet
 License:    LICENSE
-URL:        http://git.timozimmermann.de/timo/saildav
+URL:        https://gitorious.org/saildav
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  harbour-saildav.yaml
 Requires:   sailfishsilica-qt5 >= 0.10.9
@@ -25,6 +25,8 @@ BuildRequires:  pkgconfig(sailfishapp) >= 1.0.2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Qml)
 BuildRequires:  pkgconfig(Qt5Quick)
+BuildRequires:  pkgconfig(Qt5Xml)
+BuildRequires:  pkgconfig(Qt5Sql)
 BuildRequires:  desktop-file-utils
 
 %description
