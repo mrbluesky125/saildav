@@ -11,10 +11,10 @@
 
 int main(int argc, char *argv[])
 {
-    qmlRegisterType<QQuickTreeItem>("qwebdav", 1, 0, "QQuickTreeItem");
-    qmlRegisterType<QQuickTreeModel>("qwebdav", 1, 0, "QQuickTreeModel");
-    qmlRegisterType<QWebdavUrlInfo>("qwebdav", 1, 0, "WebdavFileInfo");
-    qmlRegisterType<QWebdavModel>("qwebdav", 1, 0, "WebdavModel");
+    qmlRegisterType<QQuickTreeItem>("webdav", 1, 0, "QQuickTreeItem");
+    qmlRegisterType<QQuickTreeModel>("webdav", 1, 0, "QQuickTreeModel");
+    qmlRegisterType<QWebdavUrlInfo>("webdav", 1, 0, "WebdavFileInfo");
+    qmlRegisterType<QWebdavModel>("webdav", 1, 0, "WebdavModel");
 
     QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
     QScopedPointer<QQuickView> view(SailfishApp::createView());

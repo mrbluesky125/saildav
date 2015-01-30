@@ -18,15 +18,15 @@ Page {
             height: childrenRect.height
 
             PageHeader {
-                title: qsTr("About Saildav")
+                title: qsTr("Über Saildav")
             }
 
             LabelWithCaption {
                 anchors.left: parent.left
                 anchors.margins: Theme.paddingLarge
 
-                label: qsTr("About SailDAV")
-                text: qsTr("This app is a client to access online storage using HTTP/DAV protocol. It is a Sailfish port of the Meego app MeeDAV.")
+                label: qsTr("Über Saildav")
+                text: qsTr("This app is a client to access online storage using HTTP/DAV protocol.\nIt is a Sailfish port of the Meego app MeeDAV.")
                 separator: true
             }
 
@@ -43,9 +43,16 @@ Page {
                 anchors.left: parent.left
                 anchors.margins: Theme.paddingLarge
 
+                label: qsTr("Einschränkungen")
+                text: qsTr("Die Zugangsinformationen werden im KLARTEXT in einer SQLite Datenbank gespeichert. Benutze die App nicht falls du damit nicht einverstanden bist!")
+            }
+
+            LabelWithCaption {
+                anchors.left: parent.left
+                anchors.margins: Theme.paddingLarge
+
                 label: qsTr("Author")
                 text: "Timo Zimmermann"
-                separator: true
             }
 
             LabelWithCaption {
@@ -54,7 +61,6 @@ Page {
 
                 label: qsTr("Contributors")
                 text: "Corentin Chary"
-                separator: true
             }
 
             BackgroundItem {
@@ -84,7 +90,7 @@ Page {
 
                 label: qsTr("References")
                 text: qsTr("This project uses code and ideas of other projects, see README.md.")
-                separator: true
+                separator: false
             }
         }
     }

@@ -612,7 +612,7 @@ void QWebdavUrlInfo::finished()
         }
 
         if(contentType.contains("xml")) {
-            qDebug() << data;
+            //qDebug() << data;
             setMultiResponse(data);
         }
         else if(isFile() && progress() >= 1.0) {

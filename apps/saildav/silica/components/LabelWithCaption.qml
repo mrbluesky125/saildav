@@ -8,7 +8,7 @@ Column {
     property alias separator: separator.visible
     property alias color: text.color
 
-    spacing: Theme.paddingMedium
+    spacing: Theme.paddingSmall
 
     anchors.right: parent.right
     anchors.left: parent.left
@@ -30,7 +30,7 @@ Column {
     }
     Separator {
         id: separator
-        width:parent.width;
+        width: parent.width;
         color: Theme.highlightColor
     }
 }

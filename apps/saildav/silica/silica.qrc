@@ -7,5 +7,6 @@
         <file>pages/AboutPage.qml</file>
         <file>components/LabelWithCaption.qml</file>
         <file>components/qmldir</file>
+        <file>pages/WebdavPage.qml</file>
     </qresource>
 </RCC>
