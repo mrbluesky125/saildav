@@ -1,4 +1,4 @@
-Name: SailDAV
+Name: saildav
 Summary: Sailfish WebDAV client
 Version: 0.1
 Release: 1
@@ -12,7 +12,7 @@ License: LICENSE
 Sources:
 - '%{name}-%{version}.tar.bz2'
 Description: |
-  Short description of my SailfishOS Application
+  Simple WebDAV client for SailfishOS
 Configure: none
 # The qtc5 builder inserts macros to allow QtCreator to have fine
 # control over qmake/make execution

@@ -3,7 +3,7 @@ Type=Application
 X-Nemo-Application-Type=silica-qt5
 Icon=saildav
 Exec=saildav
-Name=saildav
+Name=SailDAV
 # translation example:
 # your app name in German locale (de)
 Name[de]=saildav

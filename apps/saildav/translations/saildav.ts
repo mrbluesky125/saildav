@@ -1,38 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0">
+<TS version="2.1">
 <context>
-    <name>CoverPage</name>
+    <name>AccountPage</name>
     <message>
-        <source>My Cover</source>
+        <source>New Account</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>FirstPage</name>
+    <name>CreateFolderPage</name>
     <message>
-        <source>Show Page 2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>UI Template</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Hello Sailors</source>
+        <source>New folder</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>SecondPage</name>
+    <name>RenamePage</name>
     <message>
-        <source>Nested Page</source>
+        <source>Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Item</source>
+        <source>Rename to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>new name</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
-

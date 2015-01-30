@@ -16,7 +16,8 @@ SOURCES += main.cpp
 HEADERS +=
 
 RESOURCES += \ 
-    qml/qml.qrc
+    qml/qml.qrc \
+    silica/silica.qrc
 
 OTHER_FILES += 
 
@@ -43,11 +44,14 @@ OTHER_FILES += \
     translations/*.ts \
     saildav.desktop
 
+sailfishapp:include(../../.qmake.conf)
+
 # to disable building translations every time, comment out the
 # following CONFIG line
 CONFIG += sailfishapp_i18n
 TRANSLATIONS += translations/saildav-de.ts
 
 # Additional import path used to resolve QML modules in Creator's code model
+QML_IMPORT_PATH += $$PWD/silica
 QML_IMPORT_PATH += $$qml_dir
 QML_IMPORT_PATH += $$plugin_dir
