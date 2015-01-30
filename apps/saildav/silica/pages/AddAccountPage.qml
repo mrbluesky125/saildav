@@ -19,7 +19,7 @@ Page {
             TextField {
                 id: url
                 width: parent.width
-                validator: RegExpValidator { regExp: /^http:\/\// }
+                validator: RegExpValidator { regExp: /^http:\/\/.*/ }
 
                 placeholderText: qsTr("URL (z.B. http://my.server.com/dav)")
                 label: placeholderText
