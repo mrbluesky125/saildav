@@ -1,11 +1,14 @@
 import QtQuick 2.2
+import "." //Singleton import
 
 Item {
     width: parent.width
     height: (view.count+2) * 90
+    visible: view.count !== 0
 
     function showNotification(caption, infoText) {
-        tooltipModel.insert(0, { "caption": caption, "infoText": infoText } )
+        var notification = { "caption": caption, "infoText": infoText }
+        tooltipModel.append( notification )
     }
 
     ListModel {
@@ -23,20 +26,46 @@ Item {
         spacing: 8
 
         displaced: Transition {
-            NumberAnimation { easing.overshoot: 1.9; easing.type: Easing.OutBack; properties: "x,y"; duration: 200 }
+            NumberAnimation {
+                easing.overshoot: 1.9
+                easing.type: Easing.OutBack
+                properties: "x,y"
+                duration: 200
+                alwaysRunToEnd: true
+            }
         }
         add: Transition {
-            NumberAnimation { property: "scale"; easing.overshoot: 1.9; easing.type: Easing.OutBack; from: 0.0; to: 1.0; duration: 200 }
+            NumberAnimation {
+                property: "scale"
+                easing.overshoot: 1.9
+                easing.type: Easing.OutBack
+                from: 0.0
+                to: 1.0
+                duration: 200
+                alwaysRunToEnd: true
+            }
+        }
+        remove: Transition {
+            NumberAnimation {
+                property: "opacity"
+                easing.type: Easing.OutBack
+                from: 1.0
+                to: 0.0
+                duration: 200
+                alwaysRunToEnd: true
+            }
         }
 
-        delegate: Tooltip {
+        delegate: Notification {
             id: delegateItem
-            text: caption + " #" + index
+            text: caption
             description: infoText
-            onClosed: opacity = 0           //fade out on closing
+            onClosed: tooltipModel.remove(index) //opacity = 0           //fade out on closing
             Component.onCompleted: show()
 
-            onVisibleChanged: if(!visible) tooltipModel.remove(index);
+            //Behavior on opacity { NumberAnimation {} }
+
+            //onVisibleChanged: if(opacity === 0.0) tooltipModel.remove(index);
         }
     }
 }

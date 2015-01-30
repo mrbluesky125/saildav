@@ -9,6 +9,9 @@ Item {
     property int stackIndex: Stack.index
     property StackView stackView: Stack.view
     property int stackStatus: Stack.status
+    property bool pageActive: stackStatus === Stack.Active
 
+    property string titleText: ""
+    property bool toolbarVisible: true
 
 }

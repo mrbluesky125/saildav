@@ -1,23 +1,28 @@
-import QtQuick 2.2
-import QtQuick.Window 2.0
+pragma Singleton
 
-QtObject {
+import QtQuick 2.2
+import QtQuick.Window 2.2
+import QtQuick.Controls 1.2
+
+Item {
     id: layoutSettings
 
-    property real scaleFactor: 2.5
-    readonly property real scale: Screen.pixelDensity / scaleFactor
-    readonly property int intScale: Math.max(1, scale)
+    readonly property real normalizeFactor: 2.8             //
+
+    property real pixelDensity: normalizeFactor
+    property real scale: pixelDensity / normalizeFactor
+    property int standardMargin: 8 * scale
+
+    property LayoutTheme theme: LayoutTheme { }
 
     property QtObject color: QtObject {
-        property string headerTextColor: "black"
-        property string standardTextColor: "black"
-        //add application colors here
+        property color background: theme.background
+        property color text: theme.text
+
+        property color headerText: theme.text
+        property color itemText: theme.text
+        property color subItemText: theme.text
     }
 
-    property QtObject font: QtObject {
-        property int headerPointSize: 26
-        property int standardPointSize: 16
-        //add application text sizes here
-    }
-
+    property LayoutFont font: LayoutFont { }
 }
