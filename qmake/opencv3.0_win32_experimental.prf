@@ -1,8 +1,4 @@
 win32 {
-    #compatibility only - projects should use 'CONFIG += opencv libs' (or just use ENV-Variables)
-    #to trigger the libs feature file for more flexible external library integration (which can include automagical search for the libs)
-    isEmpty(LIBS_FEATURE_ENABLED):include($$(LIBS)/libs.pri)
-
     CONFIG(release, debug|release) : CONFIG_DIR = Release
     else:CONFIG(debug, debug|release) : CONFIG_DIR = Debug
 	
@@ -15,7 +11,7 @@ win32 {
     isEmpty(OPENCV_SRC_DIR):OPENCV_SRC_DIR = $$(OPENCV_SRC_DIR)
 
     ### Debug output
-    message(OpenCV-Configuration:)
+    message(OpenCV-Configuration 3.0 Experimental:)
     message(OPENCV_VERSION: $$OPENCV_VERSION)
     message(OPENCV_DIR: $$OPENCV_DIR)
     message(OPENCV_SRC_DIR: $$OPENCV_SRC_DIR)
@@ -27,6 +23,9 @@ win32 {
 	
     win32-msvc*:LIBS += -L$$OPENCV_DIR/lib/$$CONFIG_DIR -L$$OPENCV_DIR/3rdparty/lib/$$CONFIG_DIR
     win32-g++:LIBS += -L$$OPENCV_DIR/lib -L$$OPENCV_DIR/3rdparty/lib
+	
+	!contains(QMAKE_TARGET.arch, x86_64):LIBS += -L$$OPENCV_SRC_DIR/3rdparty/ippicv/unpack/ippicv_win/lib/ia32
+    else:LIBS += -L$$OPENCV_SRC_DIR/3rdparty/ippicv/unpack/ippicv_win/lib/intel64
 	
     win32-msvc*:LIBS += \
         -lopencv_core$$OPENCV_VERSION$$CONFIG_SUFFIX  \
@@ -41,7 +40,6 @@ win32 {
         -lopencv_imgcodecs$$OPENCV_VERSION$$CONFIG_SUFFIX \
         -lopencv_videoio$$OPENCV_VERSION$$CONFIG_SUFFIX \
         -lopencv_imgproc$$OPENCV_VERSION$$CONFIG_SUFFIX \
-        -lopencv_contrib$$OPENCV_VERSION$$CONFIG_SUFFIX \
         ### 3rdParty libs
         -lIlmImf$$CONFIG_SUFFIX \
         -lzlib$$CONFIG_SUFFIX \
@@ -49,10 +47,10 @@ win32 {
         -llibjpeg$$CONFIG_SUFFIX \
         -llibwebp$$CONFIG_SUFFIX \
         -llibjasper$$CONFIG_SUFFIX \
-        -llibpng$$CONFIG_SUFFIX
+        -llibpng$$CONFIG_SUFFIX \
+		-lippicvmt
 
    win32-g++:LIBS += \
-        -lopencv_contrib$$OPENCV_VERSION \
         -lopencv_video$$OPENCV_VERSION \
         -lopencv_objdetect$$OPENCV_VERSION \
         -lopencv_photo$$OPENCV_VERSION \
@@ -72,21 +70,9 @@ win32 {
         -llibjpeg \
         -llibwebp \
         -llibjasper \
-        -llibpng
-
-
-	lessThan($$OPENCV_VERSION, 300) {
-		win32-g++:LIBS -=  \
-			-lopencv_imgcodecs$$OPENCV_VERSION \
-			-lopencv_videoio$$OPENCV_VERSION \
-			-llibwebp 
-			
-		win32-msvc*:LIBS -= \
-			-lopencv_imgcodecs$$OPENCV_VERSION$$CONFIG_SUFFIX \
-			-lopencv_videoio$$OPENCV_VERSION$$CONFIG_SUFFIX \
-			-llibwebp$$CONFIG_SUFFIX
-	}
-		
+        -llibpng \
+		-lippicvmt
+	
     #Windows libs
     LIBS += -lcomctl32 -lgdi32 -lole32 -lsetupapi -lws2_32 -lvfw32 -ladvapi32
 		
@@ -105,9 +91,7 @@ win32 {
         $$OPENCV_SRC_DIR/modules/features2d/include \
         $$OPENCV_SRC_DIR/modules/flann/include \
         $$OPENCV_SRC_DIR/modules/imgcodecs/include \
-        $$OPENCV_SRC_DIR/modules/videoio/include \
-		$$OPENCV_SRC_DIR/modules/contrib/include \
-		$$OPENCV_SRC_DIR/modules/legacy/include
+        $$OPENCV_SRC_DIR/modules/videoio/include 
 
     DEFINES += OPENCV_USED
 }

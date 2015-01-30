@@ -35,9 +35,9 @@ win32 {
     }
 
     ### Remove some files that were captured in the 'Utilities' path
-    # INCLUDEPATH ~= s/.+sh/
-    # INCLUDEPATH ~= s/.+py/
-    # INCLUDEPATH ~= s/.+in/
+    INCLUDEPATH ~= s/.+sh$/
+    INCLUDEPATH ~= s/.+py$/
+    #INCLUDEPATH ~= s/.+in/
 
     ### It's magic - Some magic defines which normally would be set by cmake
     DEFINES += "vtkRenderingCore_AUTOINIT=4(vtkInteractionStyle,vtkRenderingFreeType,vtkRenderingFreeTypeOpenGL,vtkRenderingOpenGL)"

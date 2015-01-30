@@ -1,7 +1,7 @@
 unix:!macx:!android {
 
     ### Currently hardcoded for Debian jessie
-    isEmpty(ITK_VERSION):ITK_VERSION = 4.5
+    isEmpty(ITK_VERSION):ITK_VERSION = 4.6
     isEmpty(ITK_DIR):ITK_DIR = /usr/lib
     isEmpty(ITK_SRC_DIR):ITK_SRC_DIR = /usr/include/ITK-$$ITK_VERSION /usr/include/gdcm-2.4
 
