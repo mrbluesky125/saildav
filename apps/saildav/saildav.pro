@@ -1,6 +1,8 @@
 #copy the executable to the source folder
 win32:DLLDESTDIR = $$_PRO_FILE_PWD_
 
+TARGET = harbour-saildav
+
 #Include sub modules here
 include($$modules_dir/qwebdav/qwebdav.pri)
 include($$modules_dir/qquicktreemodel/qquicktreemodel.pri)
@@ -27,19 +29,11 @@ QT += quick qml xml sql
 #use c++11 compiler flags
 CONFIG += c++11 
 
-#additional libraries (configured with the feature files in the qmake folder)
-#CONFIG += opencv libs
-
-#Android specific variables - will be ignored in other configurations
-ANDROID_PACKAGE_SOURCE_DIR =
-ANDROID_EXTRA_LIBS =
-OTHER_FILES += $$files($$PWD/android/*)
-
 #Sailfish specific files
 CONFIG += sailfishapp
 OTHER_FILES += \
     translations/*.ts \
-    saildav.desktop
+    harbour-saildav.desktop
 
 # to disable building translations every time, comment out the
 # following CONFIG line
