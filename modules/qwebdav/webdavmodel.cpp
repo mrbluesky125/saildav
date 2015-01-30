@@ -157,8 +157,8 @@ void QWebdavModel::connectReply(QNetworkReply* reply)
 QString QWebdavModel::parentFolder(const QString& path) const
 {
     QWebdavUrlInfo* item = findItem(path);
-    if(item == 0 || item == m_rootItem)
-        return dynamic_cast<QWebdavUrlInfo*>(m_rootItem)->name();
+    if(item == 0 || item == m_rootItem.data())
+        return dynamic_cast<QWebdavUrlInfo*>(m_rootItem.data())->name();
     else
         return dynamic_cast<QWebdavUrlInfo*>(item->parentItem())->name();
 }
@@ -177,14 +177,14 @@ bool QWebdavModel::createPath(const QString& path)
 
     //check for existing item
     QWebdavUrlInfo* currentItem = findItem(path);
-    if(currentItem != m_rootItem) {
+    if(currentItem != m_rootItem.data()) {
         qDebug() << "QWebdavModel | Path found:" << path;
         return true;
     }
 
     //step through the path parts
     QStringList dirNames = path.split('/', QString::SkipEmptyParts);
-    QString currentPath = dynamic_cast<QWebdavUrlInfo*>(m_rootItem)->name();
+    QString currentPath = dynamic_cast<QWebdavUrlInfo*>(m_rootItem.data())->name();
     foreach(QString dir, dirNames) {
         if(dir == ".");
         else if(dir == "..")
@@ -235,7 +235,7 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
 QWebdavUrlInfo* QWebdavModel::findItem(const QString& path) const
 {
     QWebdavUrlInfo* item = m_rootItem->findFirst<QWebdavUrlInfo>(path, "name");
-    return item == 0 ? dynamic_cast<QWebdavUrlInfo*>(m_rootItem) : item;
+    return item == 0 ? dynamic_cast<QWebdavUrlInfo*>(m_rootItem.data()) : item;
 }
 
 QString QWebdavModel::rectifyPath(const QString& path)
@@ -278,7 +278,7 @@ bool QWebdavModel::loadCache(const QString &path)
     }
 
     m_rootItem->removeChildren(0, m_rootItem->childCount());
-    m_rootItem->readFromJson(cacheObject);
+    m_rootItem->fromJson(cacheObject);
 
     qDebug() << "QWebdavModel | Cache file succesfully loaded.";
     return true;
@@ -292,9 +292,7 @@ bool QWebdavModel::saveCache(const QString &path)
         return false;
     }
 
-    QJsonObject cacheObject;
-    m_rootItem->writeToJson(cacheObject);
-
+    QJsonObject cacheObject = m_rootItem->toJson();
     cacheFile.write(QJsonDocument(cacheObject).toJson(QJsonDocument::Indented));
     return true;
 }

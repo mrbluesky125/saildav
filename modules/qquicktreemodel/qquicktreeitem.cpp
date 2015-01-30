@@ -266,7 +266,7 @@ void QQuickTreeItem::fromJson(QJsonObject json)
 QJsonObject QQuickTreeItem::toJson() const
 {
     QJsonObject json;
-    json["itemType"] = "QQuickTreeItem";
+    json["itemType"] = QString("QQuickTreeItem");
 
     if(childCount() > 0) {
         QJsonArray jsonChildList;

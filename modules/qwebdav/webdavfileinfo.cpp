@@ -271,9 +271,7 @@ void QWebdavUrlInfo::writeToJson(QJsonObject& object) const
 
     QJsonArray jsonChildList;
     foreach(QQuickTreeItem* child, childList()) {
-        QJsonObject jsonChild;
-        child->writeToJson(jsonChild);
-        jsonChildList.append(jsonChild);
+        jsonChildList.append(child->toJson());
     }
     object["childs"] = jsonChildList;
 }
