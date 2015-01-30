@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>saildav.qml</file>
-        <file>pages/HistoryPage.qml</file>
+        <file>pages/AddAccountPage.qml</file>
         <file>pages/ChooseAccountPage.qml</file>
         <file>cover/CoverPage.qml</file>
         <file>pages/AboutPage.qml</file>
