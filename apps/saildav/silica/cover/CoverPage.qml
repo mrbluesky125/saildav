@@ -5,7 +5,7 @@ CoverBackground {
     Label {
         id: label
         anchors.centerIn: parent
-        text: qsTr("Pulse")
+        text: qsTr("SailDAV")
     }
 
 //    CoverActionList {

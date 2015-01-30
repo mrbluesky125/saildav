@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
 X-Nemo-Application-Type=silica-qt5
-Icon=saildav
-Exec=saildav
+Icon=harbour-saildav
+Exec=harbour-saildav
 Name=SailDAV
 # translation example:
 # your app name in German locale (de)
-Name[de]=saildav
+Name[de]=harbour-saildav
 

@@ -1,12 +1,8 @@
-#copy the executable to the source folder
-win32:DLLDESTDIR = $$_PRO_FILE_PWD_
-
 TARGET = harbour-saildav
 
 #Include sub modules here
 include($$modules_dir/qwebdav/qwebdav.pri)
 include($$modules_dir/qquicktreemodel/qquicktreemodel.pri)
-include($$qml_dir/org.bluesky.basics/org.bluesky.basics.pri)
 include($$qml_dir/org.bluesky.models/org.bluesky.models.pri)
 
 #Include project files
@@ -38,7 +34,7 @@ OTHER_FILES += \
 # to disable building translations every time, comment out the
 # following CONFIG line
 CONFIG += sailfishapp_i18n
-TRANSLATIONS += translations/saildav-de.ts
+TRANSLATIONS += translations/harbour-saildav-de.ts
 
 # Additional import path used to resolve QML modules in Creator's code model
 QML_IMPORT_PATH += $$PWD/silica

@@ -21,7 +21,7 @@ ApplicationWindow
 
     Component.onCompleted: {
         if(accountsModel.count === 0)
-            pageStack.push(Qt.resolvedUrl("pages/AboutPage.qml"))
+            pageStack.push(Qt.resolvedUrl("pages/ChooseAccountPage.qml"))
     }
 }
 

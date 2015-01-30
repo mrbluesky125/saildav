@@ -12,14 +12,14 @@ Page {
         contentHeight: aboutColumn.height
 
         Column {
-            PageHeader {
-                title: qsTr("About Saildav")
-            }
-
             id: aboutColumn
             anchors.left: parent.left
             anchors.right: parent.right
             height: childrenRect.height
+
+            PageHeader {
+                title: qsTr("About Saildav")
+            }
 
             LabelWithCaption {
                 anchors.left: parent.left
