@@ -1,7 +1,8 @@
 Page 1.0 Page.qml
-LayoutSettings 1.0 LayoutSettings.qml
-TouchButton 1.0 TouchButton.qml
-CloudClient 1.0 CloudClient.qml
-Header 1.0 Header.qml
-Tooltip 1.0 Tooltip.qml
+PageHeader 1.0 PageHeader.qml
+Notification 1.0 Notification.qml
 NotificationArea 1.0 NotificationArea.qml
+Toolbar 1.0 Toolbar.qml
+LayoutFont 1.0 LayoutFont.qml
+LayoutTheme 1.0 LayoutTheme.qml
+singleton LayoutSettings 1.0 LayoutSettings.qml

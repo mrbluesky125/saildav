@@ -1,3 +1,6 @@
-win32:load(opencv_win32)
+win32 {
+	lessThan(OPENCV_VERSION, 300):load(opencv_win32)
+	else:load(opencv3.0_win32_experimental)
+}
 android:load(opencv_android)
 unix:load(opencv_linux)

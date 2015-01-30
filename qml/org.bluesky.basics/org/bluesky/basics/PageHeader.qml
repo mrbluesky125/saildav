@@ -4,29 +4,35 @@ import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
 import QtGraphicalEffects 1.0
 
+import "."
+
 Rectangle {
     id: root
+
     property alias text: headerText.text
     property alias font: headerText.font
     property alias backButton: backButtonItem
 
     anchors.top: parent.top
     width: parent.width
-    height: 70 * (Screen.pixelDensity / 2.5) //initial height - can be changed
+    height: layout.height + LayoutSettings.standardMargin*2
     color: "#F5F5F7"
 
     signal backClicked
 
     RowLayout {
         id: layout
-        anchors.fill: parent
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: parent.left
         anchors.leftMargin: 12
-        spacing: 12
+        anchors.right: parent.right
+        anchors.rightMargin: 12
+        spacing: LayoutSettings.standardMargin
 
         Item {
             id: backButtonItem
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            height: parent.height * 0.50
+            height: headerText.height
             width: height
 
             Image {
@@ -53,31 +59,18 @@ Rectangle {
             verticalAlignment: Qt.AlignVCenter
             elide: Text.ElideMiddle
             font.bold: true
-            font.pointSize: 26
-            fontSizeMode: Text.VerticalFit
+            font.pointSize: LayoutSettings.font.headerPointSize
             renderType: Text.QtRendering
             color: "#555"
-        }
 
+            Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.InOutElastic } }
+        }
     }
 
     Rectangle {
         width: parent.width
         height: 1
-        anchors.top: parent.bottom
+        anchors.bottom: parent.bottom
         color: "#DCDCDE"
-    }
-
-    LinearGradient {
-        width: parent.width
-        anchors.top: parent.bottom
-        height: 18
-
-        start: Qt.point(0, 0)
-        end: Qt.point(0, height)
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#7FDCDCDE" }
-            GradientStop { position: 1.0; color: "#00DCDCDE" }
-        }
     }
 }

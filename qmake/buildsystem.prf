@@ -1,0 +1,74 @@
+defineTest(includeModule){
+    path = $$1
+
+    INCLUDEPATH += \
+        $$path
+    
+    SOURCES += \
+        $$files($$path/*.cpp) \
+	$$files($$path/*.cc) \
+	$$files($$path/*.c)
+
+    HEADERS += \
+        $$files($$path/*.h)
+
+    RESOURCES += \
+        $$files($$path/*.qrc, true)
+
+    OTHER_FILES += \
+        $$files($$path/*.qml, true) \
+        $$files($$path/*.png, true)
+
+
+    export(INCLUDEPATH)
+    export(SOURCES)
+    export(HEADERS)
+    export(RESOURCES)
+    export(OTHER_FILES)
+    return(true)
+}
+
+
+defineTest(includeQmlComponent){
+    
+    componentName = $$1
+    componentPath = $$qml_dir/$$componentName
+    
+    !exists($$componentPath):return(false)
+    system(cd $$componentPath; rcc -project > $$quote($$componentName).qrc)
+    
+    QML_IMPORT_PATH += $$componentPath
+
+    RESOURCES += \
+        $$files($$componentPath/*.qrc, true)
+
+    OTHER_FILES += \
+        $$files($$componentPath/*.png, true) \
+        $$files($$componentPath/*.qml, true) \
+        $$files($$componentPath/qmldir, true)
+
+    export(QML_IMPORT_PATH)
+    export(RESOURCES)
+    export(OTHER_FILES)
+    return(true)
+}
+
+
+
+defineTest(copyDir) {
+
+	SRC_PATH = $$1
+	DEST_PATH = $$2
+	win32:SRC_PATH ~= s,/,\\,g
+	win32:DEST_PATH ~= s,/,\\,g
+
+	copydata = $$quote(blaaa)
+	copydata.commands = $(COPY_DIR) $$SRC_PATH $$DEST_PATH
+	copydata.depends = FORCE
+	QMAKE_EXTRA_TARGETS += copydata
+	PRE_TARGETDEPS += copydata
+message($$copydata)
+	export(copydata)
+	export(PRE_TARGETDEPS)
+	export(QMAKE_EXTRA_TARGETS)
+}
