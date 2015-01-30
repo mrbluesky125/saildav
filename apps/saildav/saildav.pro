@@ -22,7 +22,7 @@ RESOURCES += \
 OTHER_FILES += 
 
 #additional Qt modules
-QT += quick qml xml
+QT += quick qml xml sql
 
 #use c++11 compiler flags
 CONFIG += c++11 
@@ -38,13 +38,8 @@ OTHER_FILES += $$files($$PWD/android/*)
 #Sailfish specific files
 CONFIG += sailfishapp
 OTHER_FILES += \
-    rpm/saildav.changes \
-    rpm/saildav.spec \
-    rpm/saildav.yaml \
     translations/*.ts \
     saildav.desktop
-
-sailfishapp:include(../../.qmake.conf)
 
 # to disable building translations every time, comment out the
 # following CONFIG line
