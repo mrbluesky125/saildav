@@ -55,7 +55,7 @@ void QWebdavModel::setFolder(const QString& path)
     if(m_folder == path || !createPath(path)) return;
 
     m_folder = path;
-    qDebug() << "QWebdavModel | Set folder:" << path;
+    qCDebug(Q_WEBDAV) << "Set folder:" << path;
     QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
     emit folderChanged();
 }
@@ -128,7 +128,7 @@ void QWebdavModel::classBegin()
 
 void QWebdavModel::componentComplete()
 {
-    //loadCache(localRootPath());
+    loadCache(localRootPath());
     cd(homePath());
     QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
 }
@@ -144,7 +144,7 @@ void QWebdavModel::replyFinished()
 
 void QWebdavModel::replyError(QNetworkReply::NetworkError error)
 {
-    qDebug() << "QWebdavModel | NetworkError:" << error;
+    qCWarning(Q_WEBDAV) << "NetworkError:" << error;
 
     //sender is always a network reply, no check necessary
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
@@ -155,13 +155,13 @@ void QWebdavModel::replySslError(const QList<QSslError> &errors)
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
     reply->ignoreSslErrors();
-    qDebug() << "QWebdavModel | Ignored SSL errors: " << errors;
+    qCDebug(Q_WEBDAV) << "Ignored SSL errors: " << errors;
 }
 
 void QWebdavModel::authenticationRequired(QNetworkReply* reply, QAuthenticator* authenticator)
 {
-    qDebug() << "QWebdavModel | Authentification for" << baseUrl() << "required.";
-    qDebug() << "QWebdavModel | Trying to login...";
+    qCDebug(Q_WEBDAV) << "Authentification for" << baseUrl() << "required.";
+    qCDebug(Q_WEBDAV) << "Trying to login...";
     authenticator->setUser(userName());
     authenticator->setPassword(password());
 }
@@ -188,17 +188,17 @@ bool QWebdavModel::createPath(const QString& path)
     if(path == "/")
         return true;
 
-    qDebug() << "QWebdavModel | Create path:" << path;
+    qCDebug(Q_WEBDAV) << "Create path:" << path;
 
     if(!path.startsWith('/')) {
-        qDebug() << "QWebdavModel | Cannot create a relative path:" << path;
+        qCDebug(Q_WEBDAV) << "Cannot create a relative path:" << path;
         return false;
     }
 
     //check for existing item
     QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem != m_rootItem.data()) {
-        qDebug() << "QWebdavModel | Path found:" << path;
+        qCDebug(Q_WEBDAV) << "Path found:" << path;
         return true;
     }
 
@@ -213,13 +213,13 @@ bool QWebdavModel::createPath(const QString& path)
             currentPath = createFolder(currentPath, dir);
     }
 
-    qDebug() << "QWebdavModel | Path created:" << path;
+    qCDebug(Q_WEBDAV) << "Path created:" << path;
     return true;
 }
 
 QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
 {
-    qDebug() << "QWebdavModel | Create folder:" << path;
+    qCDebug(Q_WEBDAV) << "Create folder:" << path;
 
     if(path.isEmpty() || dirName.isEmpty())
         return path;
@@ -228,7 +228,7 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
     foreach(QQuickTreeItem* item, findItem(path)->childList()) {
         QWebdavUrlInfo* urlInfoItem = static_cast<QWebdavUrlInfo*>(item);
         if(urlInfoItem->name().endsWith(dirName + "/")) {
-            qDebug() << "QWebdavModel | Folder found:" << dirName << "in path:" << path;
+            qCDebug(Q_WEBDAV) << "Folder found:" << dirName << "in path:" << path;
             return urlInfoItem->name();
         }
     }
@@ -243,12 +243,12 @@ QString QWebdavModel::createFolder(const QString& path, const QString& dirName)
     QModelIndex parentIndex = getIndex(findItem(path));
     insertRow(0, urlInfoItem, parentIndex);
 
-    qDebug() << "QWebdavModel | Create local dir:" << urlInfoItem->name();
+    qCDebug(Q_WEBDAV) << "Create local dir:" << urlInfoItem->name();
     if(!QDir().mkpath(localRootPath() + urlInfoItem->name())) {
-        qDebug() << "QWebdavModel | Failed to create local dir:" << urlInfoItem->name();
+        qCWarning(Q_WEBDAV) << "Failed to create local dir:" << urlInfoItem->name();
     }
 
-    qDebug() << "QWebdavModel | Folder created:" << dirName << "in path:" << path;
+    qCDebug(Q_WEBDAV) << "Folder created:" << dirName << "in path:" << path;
     return urlInfoItem->name();
 }
 
@@ -275,32 +275,34 @@ void QWebdavModel::setLocalRootPath(const QString& path)
 {
     m_localRootPath = path;
 
-    qDebug() << "QWebdavModel | Create local dir:" << path;
+    qCDebug(Q_WEBDAV) << "Create local dir:" << path;
     if(!QDir().mkpath(path)) {
-        qDebug() << "QWebdavModel | Failed to create local dir:" << path;
+        qCWarning(Q_WEBDAV) << "Failed to create local dir:" << path;
     }
 }
 
 bool QWebdavModel::loadCache(const QString &path)
 {
-    qDebug() << "QWebdavModel | Trying to load cache file from:" << path;
+    qCDebug(Q_WEBDAV) << "Trying to load cache file from:" << path;
 
     QFile cacheFile(path + ".jsonCache");
     if(!cacheFile.open(QFile::ReadOnly)) {
-        qDebug() << "QWebdavModel | Cache file" << cacheFile.fileName() << "not available";
+        qCWarning(Q_WEBDAV) << "Cache file" << cacheFile.fileName() << "not available";
         return false;
     }
 
     QJsonObject cacheObject = QJsonDocument::fromJson(cacheFile.readAll()).object();
     if(cacheObject.isEmpty()) {
-        qDebug() << "QWebdavModel | Cache file empty or parser error occured.";
+        qCWarning(Q_WEBDAV) << "Cache file empty or parser error occured.";
         return false;
     }
+
+    //qCDebug(Q_WEBDAV) << "Cache file:\n" << QJsonDocument(cacheObject).toJson();
 
     m_rootItem->removeChildren(0, m_rootItem->childCount());
     m_rootItem->fromJson(cacheObject);
 
-    qDebug() << "QWebdavModel | Cache file succesfully loaded.";
+    qCDebug(Q_WEBDAV) << "Cache file succesfully loaded.";
     return true;
 }
 
@@ -314,16 +316,19 @@ bool QWebdavModel::saveCache(const QString &path)
 
     QJsonObject cacheObject = m_rootItem->toJson();
     cacheFile.write(QJsonDocument(cacheObject).toJson(QJsonDocument::Indented));
+
+    //qCDebug(Q_WEBDAV) << "Cache file:\n" << QJsonDocument(cacheObject).toJson();
+
     return true;
 }
 
 void QWebdavModel::rename(const QString& path, const QString& to)
 {
-    qDebug() << "QWebdavModel | move:" << path << "to:" << to;
+    qCDebug(Q_WEBDAV) << "move:" << path << "to:" << to;
 
     QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
-        qDebug() << "QWebdavModel | Cannot rename entry, not found:" << currentItem->name();
+        qCWarning(Q_WEBDAV) << "Cannot rename entry, not found:" << currentItem->name();
         return;
     }
 
@@ -340,11 +345,11 @@ void QWebdavModel::rename(const QString& path, const QString& to)
 
 void QWebdavModel::remove(const QString& path)
 {
-    qDebug() << "QWebdavModel | remove:" << path;
+    qCDebug(Q_WEBDAV) << "remove:" << path;
 
     QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
-        qDebug() << "QWebdavModel | Cannot remove entry, not found:" << currentItem->name();
+        qCWarning(Q_WEBDAV) << "Cannot remove entry, not found:" << currentItem->name();
         return;
     }
 
@@ -356,17 +361,17 @@ void QWebdavModel::remove(const QString& path)
 
 void QWebdavModel::upload(const QString& path, const QString& from)
 {
-    qDebug() << "QWebdavModel | upload " << from << "to:" << path;
+    qCDebug(Q_WEBDAV) << "upload " << from << "to:" << path;
 
     QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
-        qDebug() << "QWebdavModel | Cannot upload" << from << ", path not found:" << path;
+        qCWarning(Q_WEBDAV) << "Cannot upload" << from << ", path not found:" << path;
         return;
     }
 
     QScopedPointer<QFile> file( new QFile(QUrl(from).toLocalFile()) );
     if(!file->open(QFile::ReadOnly)) {
-        qDebug() << "QWebdavModel | Failed to open file:" << from;
+        qCWarning(Q_WEBDAV) << "Failed to open file:" << from;
         return;
     }
 
@@ -390,9 +395,9 @@ void QWebdavModel::upload(const QString& path, const QString& from)
 
 void QWebdavModel::mkdir(const QString& path)
 {
-    qDebug() << "QWebdavModel | mkdir:" << path;
+    qCDebug(Q_WEBDAV) << "mkdir:" << path;
     if(!createPath(path)) {
-        qDebug() << "QWebdavModel | Failed to create new remote folder:" << path;
+        qCWarning(Q_WEBDAV) << "Failed to create new remote folder:" << path;
         return;
     }
 
@@ -404,19 +409,19 @@ void QWebdavModel::mkdir(const QString& path)
 
 void QWebdavModel::download(const QString& path)
 {
-    qDebug() << "QWebdavModel | get:" << path;
+    qCDebug(Q_WEBDAV) << "get:" << path;
 
     //I assume that the file is visible and in the cache
     QWebdavUrlInfo* currentItem = findItem(path);
     if(currentItem == 0) {
-        qDebug() << "QWebdavModel | Failed to download file. File not found:" << path;
+        qCWarning(Q_WEBDAV) << "Failed to download file. File not found:" << path;
         return;
     }
 
     QString localPath = localRootPath() + parentFolder(currentItem->name());
     QScopedPointer<QFile> file(new QFile(localPath + currentItem->displayName()));
     if(!file->open(QFile::WriteOnly)) {
-        qDebug() << "QWebdavModel | Unable to write to local file:" << localPath;
+        qCWarning(Q_WEBDAV) << "Unable to write to local file:" << localPath;
         return;
     }
 
@@ -428,14 +433,14 @@ void QWebdavModel::download(const QString& path)
 void QWebdavModel::cd(const QString& dir)
 {
     QString path = rectifyPath(dir);
-    qDebug() << "QWebdavModel | cd:" << path;
+    qCDebug(Q_WEBDAV) << "cd:" << path;
     setFolder(path);
 }
 
 void QWebdavModel::refresh()
 {
-    qDebug() << "QWebdavModel | Current folder:" << folder();
-    qDebug() << "QWebdavModel | List url:" << baseUrl() + folder();
+    qCDebug(Q_WEBDAV) << "Current folder:" << folder();
+    qCDebug(Q_WEBDAV) << "List url:" << baseUrl() + folder();
     QNetworkReply* reply = m_webdavManager.list(baseUrl() + folder());
     findItem(folder())->setReply(reply);
     connectReply(reply);

@@ -27,9 +27,11 @@
 #include "webdav.h"
 #include "webdavfileinfo.h"
 
+Q_LOGGING_CATEGORY(Q_WEBDAV, "module.qwebdav")
+
 QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
 {
-    connect(this, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    QObject::connect(this, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 }
 
 QWebdav::~QWebdav()
@@ -133,8 +135,8 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data)
 
     QNetworkReply* reply = QNetworkAccessManager::get(req);
     m_inDataDevices.insert(reply, data);
-    connect(reply, SIGNAL(readyRead()), this, SLOT(replyReadyRead()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
+    QObject::connect(reply, SIGNAL(readyRead()), this, SLOT(replyReadyRead()));
+    QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
     return reply;
 }
 

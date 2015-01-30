@@ -27,6 +27,8 @@
 #include <QtCore>
 #include <QtNetwork>
 
+Q_DECLARE_LOGGING_CATEGORY(Q_WEBDAV)
+
 class QWebdavUrlInfo;
 
 /**

@@ -118,7 +118,7 @@ QDateTime QWebdavUrlInfo::parseDateTime( const QString& input, const QString& ty
     datetime = QDateTime(date, time);
 
     if(!datetime.isValid())
-        qDebug() << "QWebdavUrlInfo | Unknown date time format:" << input;
+        qCWarning(Q_WEBDAV) << "Unknown date time format:" << input;
 
     return datetime;
 }
@@ -138,7 +138,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
         QDomElement status = propstat.namedItem( "status" ).toElement();
 
         if ( status.isNull() ) {
-            qDebug() << "Error, no status code in this propstat";
+            qCWarning(Q_WEBDAV) << "Error, no status code in this propstat";
             return;
         }
 
@@ -150,7 +150,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
         QDomElement prop = propstat.namedItem( "prop" ).toElement();
 
         if ( prop.isNull() ) {
-            qDebug() << "Error: no prop segment in this propstat.";
+            qCDebug(Q_WEBDAV) << "Error: no prop segment in this propstat.";
             return;
         }
 
@@ -203,8 +203,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
                     isDirectory = true;
             }
             else
-                qDebug() << "Found unknown webdav property: "
-                         << property.tagName() << property.text();
+                qCWarning(Q_WEBDAV) << "Found unknown webdav property: " << property.tagName() << property.text();
         }
     }
     setDir(isDirectory);
@@ -222,7 +221,7 @@ void QWebdavUrlInfo::davParsePropstats( const QString & path, const QDomNodeList
         setMimeType(mimeType);
 }
 
-void QWebdavUrlInfo::readFromJson(QJsonObject object)
+void QWebdavUrlInfo::fromJson(QJsonObject object)
 {
     setDir(object.value("dir").toBool());
     setFile(object.value("file").toBool());
@@ -245,12 +244,13 @@ void QWebdavUrlInfo::readFromJson(QJsonObject object)
     QJsonArray jsonChildList = object["childs"].toArray();
     foreach(QJsonValue jsonChild, jsonChildList) {
         QWebdavUrlInfo* newChild(new QWebdavUrlInfo(this));
-        newChild->readFromJson(jsonChild.toObject());
+        newChild->fromJson(jsonChild.toObject());
     }
 }
 
-void QWebdavUrlInfo::writeToJson(QJsonObject& object) const
+QJsonObject QWebdavUrlInfo::toJson() const
 {
+    QJsonObject object;
     object.insert("dir", isDir());
     object.insert("file", isFile());
     object.insert("group", group());
@@ -274,6 +274,7 @@ void QWebdavUrlInfo::writeToJson(QJsonObject& object) const
         jsonChildList.append(child->toJson());
     }
     object["childs"] = jsonChildList;
+    return object;
 }
 
 void QWebdavUrlInfo::setDir(bool b)
@@ -554,7 +555,7 @@ void QWebdavUrlInfo::setMultiResponse(const QString& xmlData)
             addChild(item);
         }
 
-        qDebug() << "QWebdavUrlInfo | Response received: " << item->name();
+        qCDebug(Q_WEBDAV) << "Response received: " << item->name();
         QCoreApplication::processEvents();
     }
 
@@ -577,7 +578,7 @@ void QWebdavUrlInfo::setResponse(const QDomElement& dom)
 void QWebdavUrlInfo::setReply(QNetworkReply* reply)
 {
     if(isBusy()) {
-        qWarning() << "QWebdavUrlInfo | QWebdavUrlInfo is busy.";
+        qCWarning(Q_WEBDAV) << "QWebdavUrlInfo is busy.";
         return;
     }
 
@@ -599,24 +600,24 @@ void QWebdavUrlInfo::abort()
 void QWebdavUrlInfo::finished()
 {
     QString contentType = m_reply->header(QNetworkRequest::ContentTypeHeader).toString();
-    qDebug() << "QWebdavUrlInfo | Reply finished. Content header:" << contentType;
+    qCDebug(Q_WEBDAV) << "Reply finished. Content header:" << contentType;
     setBusy(false);
 
     if(m_reply->error() != QNetworkReply::NoError) {
-        qDebug() << "QWebdavUrlInfo | Reply has error. Error:" << m_reply->errorString() << "Code:" << m_reply->error();
+        qCWarning(Q_WEBDAV) << "Reply has error. Error:" << m_reply->errorString() << "Code:" << m_reply->error();
     }
     else {
         QByteArray data = m_reply->readAll();
         if(data.isEmpty()) {
-            qDebug() << "QWebdavUrlInfo | Reply has no data."; //<< m_reply->rawHeaderPairs();
+            qCWarning(Q_WEBDAV) << "Reply has no data."; //<< m_reply->rawHeaderPairs();
         }
 
         if(contentType.contains("xml")) {
-            //qDebug() << data;
+            //qCDebug(Q_WEBDAV) << data;
             setMultiResponse(data);
         }
         else if(isFile() && progress() >= 1.0) {
-            qDebug() << "QWebdavUrlInfo | Download of" << displayName() << "finished.";
+            qCDebug(Q_WEBDAV) << "Download of" << displayName() << "finished.";
         }
     }
 
@@ -627,19 +628,21 @@ void QWebdavUrlInfo::finished()
 
 void QWebdavUrlInfo::error(QNetworkReply::NetworkError code)
 {
-    qDebug() << "QWebdavUrlInfo | Network error occured. Error:" << m_reply->errorString() << "Code:" << code;
+    qCWarning(Q_WEBDAV) << "Network error occured. Error:" << m_reply->errorString() << "Code:" << code;
 }
 
 void QWebdavUrlInfo::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
     qreal progress = (qreal)bytesReceived/(qreal)bytesTotal;
     setProgress(progress > 0 ? progress : 0);
-    qDebug() << "QWebdavUrlInfo | Download progress." << bytesReceived << "Bytes from" << bytesTotal << "received.";
+
+    qCDebug(Q_WEBDAV) << "Download progress." << bytesReceived << "Bytes from" << bytesTotal << "received.";
 }
 
 void QWebdavUrlInfo::uploadProgress(qint64 bytesSent, qint64 bytesTotal)
 {
     qreal progress = (qreal)bytesSent/(qreal)bytesTotal;
     setProgress(progress > 0 ? progress : bytesTotal);
-    qDebug() << "QWebdavUrlInfo | Upload progress." << bytesSent << "Bytes from" << bytesTotal << "sent.";
+
+    qCDebug(Q_WEBDAV) << "Upload progress." << bytesSent << "Bytes from" << bytesTotal << "sent.";
 }

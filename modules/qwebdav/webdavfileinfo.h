@@ -147,8 +147,8 @@ protected:
     QDateTime parseDateTime(const QString& input, const QString& type);
     void davParsePropstats(const QString& path, const QDomNodeList& propstat);
 
-    void readFromJson(QJsonObject object);
-    void writeToJson(QJsonObject& object) const;
+    void fromJson(QJsonObject object);
+    QJsonObject toJson() const;
 
 signals:
     void dirChanged(bool);

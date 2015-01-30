@@ -58,7 +58,7 @@ Page {
                 separator: index < (accountsModel.count-1)
             }
             onClicked: {
-                pageStack.replace(Qt.resolvedUrl("WebdavPage.qml"), { "account": accountsModel.get(index) });
+                pageStack.push(Qt.resolvedUrl("WebdavPage.qml"), { "account": accountsModel.get(index) });
             }
         }
         VerticalScrollDecorator {}

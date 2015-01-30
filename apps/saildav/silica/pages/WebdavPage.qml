@@ -54,7 +54,8 @@ Page {
                 }
             }
             MenuItem {
-                text: "cd " + webdavClient.currentItem.parentItem.name
+                text: qsTr("Zurück")
+                enabled: webdavClient.folder !== webdavClient.homePath
                 onClicked: {
                     webdavClient.folder = webdavClient.parentFolder
                 }
