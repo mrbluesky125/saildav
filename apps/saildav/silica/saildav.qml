@@ -20,8 +20,7 @@ ApplicationWindow
     cover: Component { CoverPage {} }
 
     Component.onCompleted: {
-        if(accountsModel.count === 0)
-            pageStack.push(Qt.resolvedUrl("pages/ChooseAccountPage.qml"))
+         pageStack.push(Qt.resolvedUrl("pages/ChooseAccountPage.qml"))
     }
 }
 

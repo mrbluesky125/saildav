@@ -34,7 +34,7 @@ Page {
                 id: firstName
                 anchors.left: parent.left
                 anchors.leftMargin: Theme.paddingLarge
-                text: model.title
+                text: modelData.url
                 color: highlighted ? Theme.highlightColor : Theme.primaryColor
                 anchors.verticalCenter: parent.verticalCenter
             }
