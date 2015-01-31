@@ -13,24 +13,24 @@ Page {
         model: accountsModel
 
         header: PageHeader {
-            title: qsTr("Server auswählen")
+            title: qsTr("Choose server")
         }
 
         ViewPlaceholder {
             enabled: listView.count == 0
-            text: qsTr("Serverliste ist leer")
-            hintText: qsTr("Füge einen WebDAV-Account über das Pull-Down-Menü hinzu")
+            text: qsTr("Server list empty")
+            hintText: qsTr("Pull down and add a new server")
         }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Über SailDAV")
+                text: qsTr("About SailDAV")
                 onClicked: {
                     pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
                 }
             }
             MenuItem {
-                text: qsTr("Server hinzufügen")
+                text: qsTr("Add server")
                 onClicked: {
                     pageStack.push(Qt.resolvedUrl("AddAccountPage.qml"))
                 }
@@ -41,7 +41,7 @@ Page {
 
             menu: ContextMenu {
                 MenuItem {
-                    text: "Delete"
+                    text: qsTr("Delete")
                     onClicked: {
                         remorseAction("Deleting", function() { accountsModel.removeSql(rowid); });
                     }

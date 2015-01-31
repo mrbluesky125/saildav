@@ -52,7 +52,12 @@ QString QWebdavModel::folder() const
 
 void QWebdavModel::setFolder(const QString& path)
 {
-    if(m_folder == path || !createPath(path)) return;
+    if(m_folder == path) return;
+
+    if(!createPath(path)) {
+        qCWarning(Q_WEBDAV) << "Creating folder failed." << path;
+        return;
+    }
 
     m_folder = path;
     qCDebug(Q_WEBDAV) << "Set folder:" << path;

@@ -16,6 +16,7 @@ Page {
         password: account.password
         baseUrl: account.url
         onErrorChanged: showError(error);
+
     }
 
     SilicaListView {
@@ -29,35 +30,54 @@ Page {
 
         ViewPlaceholder {
             enabled: listView.count === 0
-            text: qsTr("Ordner ist leer")
+            text: qsTr("Directory empty")
             hintText: webdavClient.homePath
         }
 
         PullDownMenu {
             busy: webdavClient.currentItem.busy
             MenuItem {
-                text: qsTr("Über SailDAV")
+                text: qsTr("About SailDAV")
                 onClicked: {
                     pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
                 }
             }
             MenuItem {
-                text: qsTr("Aktualisieren")
+                text: qsTr("Refresh")
                 onClicked: {
                     webdavClient.refresh();
                 }
             }
             MenuItem {
-                text: "Home"
+                text: qsTr("Home")
+                visible: webdavClient.folder !== webdavClient.homePath
                 onClicked: {
                     webdavClient.folder = webdavClient.homePath
                 }
             }
             MenuItem {
-                text: qsTr("Zurück")
+                text: qsTr("Back")
                 enabled: webdavClient.folder !== webdavClient.homePath
                 onClicked: {
                     webdavClient.folder = webdavClient.parentFolder
+                }
+            }
+        }
+
+        PushUpMenu {
+            busy: webdavClient.currentItem.busy
+            MenuItem {
+                text: qsTr("Create folder")
+                enabled: false
+                onClicked: {
+
+                }
+            }
+            MenuItem {
+                text: qsTr("Upload")
+                enabled: false
+                onClicked: {
+
                 }
             }
         }
@@ -66,15 +86,25 @@ Page {
 
             menu: ContextMenu {
                 MenuItem {
-                    text: "Download"
+                    text: qsTr("Download")
+                    visible: !dir
+                    enabled: !busy
                     onClicked: {
-                        remorseAction("Deleting", function() {  });
+                        remorseAction(qsTr("Downloading"), function() { webdavClient.download(name) });
                     }
                 }
                 MenuItem {
-                    text: "Delete"
+                    text: qsTr("Delete")
+                    enabled: !busy
                     onClicked: {
-                        remorseAction("Deleting", function() {  });
+                        remorseAction(qsTr("Deleting"), function() { webdavClient.remove(name) });
+                    }
+                }
+                MenuItem {
+                    text: qsTr("Abort")
+                    enabled: busy
+                    onClicked: {
+                        remorseAction(qsTr("Abort"), function() { webdavClient.abort() });
                     }
                 }
             }

@@ -18,14 +18,14 @@ Page {
             height: childrenRect.height
 
             PageHeader {
-                title: qsTr("Über Saildav")
+                title: qsTr("About Saildav")
             }
 
             LabelWithCaption {
                 anchors.left: parent.left
                 anchors.margins: Theme.paddingLarge
 
-                label: qsTr("Über Saildav")
+                label: qsTr("About Saildav")
                 text: qsTr("This app is a client to access online storage using HTTP/DAV protocol.\nIt is a Sailfish/QtQuick2 port of the Meego app MeeDAV.")
                 separator: true
             }
@@ -35,7 +35,7 @@ Page {
                 anchors.margins: Theme.paddingLarge
 
                 label: qsTr("Version")
-                text: getVersion()
+                text: applicationVersion
                 separator: true
             }
 
@@ -43,7 +43,7 @@ Page {
                 anchors.left: parent.left
                 anchors.margins: Theme.paddingLarge
 
-                label: qsTr("Einschränkungen")
+                label: qsTr("Restrictions")
                 text: qsTr("Die Zugangsinformationen werden im KLARTEXT in einer SQLite Datenbank gespeichert. Benutze die App nicht, falls du damit nicht einverstanden bist!")
             }
 

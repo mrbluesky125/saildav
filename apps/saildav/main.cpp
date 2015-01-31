@@ -18,9 +18,11 @@ int main(int argc, char *argv[])
 
     QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
     QScopedPointer<QQuickView> view(SailfishApp::createView());
+    app->setApplicationVersion("0.1.0");
 
     view->rootContext()->engine()->addImportPath(":/");
     view->rootContext()->engine()->addPluginPath(":/");
+    view->rootContext()->setContextProperty("applicationVersion", app->applicationVersion());
     view->setSource(QUrl("qrc:/saildav.qml"));
     view->show();
 

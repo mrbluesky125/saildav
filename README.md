@@ -1,7 +1,7 @@
-Saildav for Sailfish OS
+SailDAV for Sailfish OS
 ===========================
 
-Sailfish port of the MeeDAV app from the good old N9.
+SailfishOS port of the MeeDAV app from the good old N9.
 
 ## License
 
@@ -18,6 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+## Borrowed code
 
+- Some ideas and code from https://github.com/steffen-foerster/sailfish-barcode
+- QWebdav http://xf.iksaif.net/dev/qwebdav.html
 
 

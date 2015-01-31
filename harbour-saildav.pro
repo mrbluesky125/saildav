@@ -8,4 +8,5 @@ SUBDIRS += \
 
 OTHER_FILES = \
     $$files(rpm/*) \
-    LICENSE
+    LICENSE \
+    README.md

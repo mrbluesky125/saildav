@@ -13,15 +13,15 @@ Page {
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: qsTr("Server auswählen")
+                title: qsTr("Choose server")
             }
 
             TextField {
                 id: url
                 width: parent.width
-                validator: RegExpValidator { regExp: /^http:\/\/.*/ }
+                validator: RegExpValidator { regExp: /^[http:\/\/,https:\/\/].*/ }
 
-                placeholderText: qsTr("URL (z.B. http://my.server.com/dav)")
+                placeholderText: qsTr("URL (e.g. http://my.server.com/dav)")
                 label: placeholderText
                 text: "http://"
             }
@@ -31,7 +31,7 @@ Page {
                 width: parent.width
 
                 inputMethodHints: Qt.ImhNoAutoUppercase
-                placeholderText: qsTr("Benutzer")
+                placeholderText: qsTr("User")
                 label: placeholderText
             }
 
@@ -40,13 +40,13 @@ Page {
                 width: parent.width
 
                 echoMode: TextInput.Password
-                placeholderText: qsTr("Passwort")
+                placeholderText: qsTr("Password")
                 label: placeholderText
             }
 
             TextSwitch {
                 id: autoLoginSwitch
-
+                visible: false
                 text: qsTr("Auto Login")
                 checked: false
             }
@@ -61,7 +61,7 @@ Page {
             Button {
                 id: continueButton
                 //enabled: url.valid
-                text: qsTr("Hinzufügen")
+                text: qsTr("Add")
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     accountsModel.insertSql({ "url": url.text, "username": username.text, "password": password.text });
