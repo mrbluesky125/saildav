@@ -77,6 +77,8 @@ public:
     void classBegin();
     void componentComplete();
 
+    Q_INVOKABLE void setupDatabase();
+
 public slots:
     void rename(const QString& path, const QString& to);
     void remove(const QString& path);

@@ -21,6 +21,13 @@
 #include "webdavmodel.h"
 #include "webdavfileinfo.h"
 
+#include <QtSql>
+
+static const QString DBNAME = QString("saildav");
+static const QString DBVERSION = QString("1.0");
+static const QString DBDESCRIPTION = QString("");
+static const int DBESTIMATEDSIZE = 1000;
+
 QWebdavModel::QWebdavModel(QObject *parent) : QQuickTreeModel(new QWebdavUrlInfo("/"))
   ,m_folder("/")
   ,m_homePath("/")
@@ -108,6 +115,8 @@ void QWebdavModel::setBaseUrl(const QString& baseUrl)
     emit baseUrlChanged();
 
     setLocalRootPath(localRootPath()+m_baseUrl.host()+"/");
+
+    //QSqlQuery query("CREATE TABLE IF NOT EXISTS " + m_baseUrl.host() + );
 }
 
 void QWebdavModel::setUserName(const QString& userName)
@@ -128,7 +137,8 @@ void QWebdavModel::setPassword(const QString& password)
 
 void QWebdavModel::classBegin()
 {
-    setLocalRootPath(m_localRootPath); //make sure the local application dir is created
+    setLocalRootPath(m_localRootPath);
+    setupDatabase();
 }
 
 void QWebdavModel::componentComplete()
@@ -136,6 +146,34 @@ void QWebdavModel::componentComplete()
     loadCache(localRootPath());
     cd(homePath());
     QMetaObject::invokeMethod(this, "refresh", Qt::QueuedConnection);
+}
+
+void QWebdavModel::setupDatabase()
+{
+    QString offlineStoragePath = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/QML/OfflineStorage/Databases/";
+    QString hashedDatabaseName = offlineStoragePath + QCryptographicHash::hash(qPrintable(DBNAME), QCryptographicHash::Md5).toHex() + ".sqlite";
+
+    if(!QDir().mkpath(offlineStoragePath)) {
+        qCWarning(Q_WEBDAV) << "Unable to create offline storage directory" << offlineStoragePath;
+        return;
+    }
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(hashedDatabaseName);
+
+    if(!db.open()) {
+        qCWarning(Q_WEBDAV) << "Unable to open sqlite database (" << db.databaseName() << ") !";
+        return;
+    }
+
+    qCDebug(Q_WEBDAV) << "SQLite database (" << db.databaseName() << ") opened successfully in local path!";
+
+    QSettings dbSettings(hashedDatabaseName.replace(QRegularExpression(".sqlite$"), ".ini"), QSettings::IniFormat);
+    dbSettings.setValue("Name", DBNAME);
+    dbSettings.setValue("Version", DBVERSION);
+    dbSettings.setValue("Description", DBDESCRIPTION);
+    dbSettings.setValue("EstimatedSize", DBESTIMATEDSIZE);
+    dbSettings.setValue("Driver", QString("QSQLITE"));
 }
 
 void QWebdavModel::replyFinished()
@@ -424,6 +462,11 @@ void QWebdavModel::download(const QString& path)
     }
 
     QString localPath = localRootPath() + parentFolder(currentItem->name());
+    if(!QDir().mkpath(localPath)) {
+        qCWarning(Q_WEBDAV) << "Failed to create local dir:" << localPath;
+        return;
+    }
+
     QScopedPointer<QFile> file(new QFile(localPath + currentItem->displayName()));
     if(!file->open(QFile::WriteOnly)) {
         qCWarning(Q_WEBDAV) << "Unable to write to local file:" << localPath;
