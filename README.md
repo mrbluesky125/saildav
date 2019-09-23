@@ -1,11 +1,9 @@
 SailDAV for Sailfish OS
 ===========================
 
-SailfishOS port of the MeeDAV app from the good old N9.
+SailfishOS port of my MeeDAV (https://github.com/harmattan/meedav) app from the good old N9 - RIP.
 
 ## License
-
-Copyright (C) 2015 Timo Zimmermann
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-## Borrowed code
+## Used code
 
 - Some ideas and code from https://github.com/steffen-foerster/sailfish-barcode
 - QWebdav http://xf.iksaif.net/dev/qwebdav.html
